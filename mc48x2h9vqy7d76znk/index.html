@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>전문가 채점지</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mute:#555;--line:#999;--head:#f0f0f0;--adult:#fafafa;--ed:#fff2b3;--cur:#e5edff;--accent:#2f5bd3;--err:#b42318;--ok:#2e9b4b;--chip:#eef1f6}
+@media (prefers-color-scheme:dark){:root{--bg:#15181d;--fg:#e6e9ee;--mute:#9aa3b2;--line:#444b57;--head:#232833;--adult:#1b1f26;--ed:#4a3f14;--cur:#1f2b45;--accent:#7b9cff;--err:#ff8a7a;--chip:#232833}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif}
+#lock{min-height:100vh;display:grid;place-items:center;padding:16px}
+#lock form{width:100%;max-width:380px;border:1px solid var(--line);border-radius:12px;padding:24px}
+#lock h1{font-size:18px;margin:0 0 6px}#lock p{margin:0 0 14px;color:var(--mute);font-size:14px}
+input,select,textarea,button{font:inherit;color:var(--fg)}
+#lock input{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+button{padding:5px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+#lock button{width:100%;margin-top:12px}#msg{min-height:1.4em;margin-top:8px;color:var(--err);font-size:14px}
+#app{display:none}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:2px solid var(--fg);padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+header h1{font-size:16px;margin:0 6px 0 0}
+#reviewer{width:140px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.grow{flex:1}.small{font-size:12.5px;color:var(--mute)}#warn{color:var(--err);font-size:12.5px}
+#unsaved{color:var(--err);font-size:12.5px;font-weight:600}
+button.pulse{box-shadow:0 0 0 3px rgba(180,35,24,.35)}
+main{max-width:1700px;margin:0 auto;padding:12px 16px 120px}
+h2{font-size:15px;margin:26px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--fg)}
+.guide{border:1px solid var(--line);border-radius:6px;padding:8px 12px 8px 28px;font-size:13px;margin-top:6px}
+.guide li{margin:3px 0}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:4px 6px;vertical-align:top;text-align:left}
+th{background:var(--head);font-weight:600;white-space:nowrap;position:sticky;top:0}
+#t2{table-layout:fixed;min-width:1280px}
+td.tm{white-space:nowrap;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--mute)}
+tr.adult td{background:var(--adult)}
+tr.cur td{background:var(--cur)!important}
+tr.added td.tm{color:var(--accent)}
+td select,td input[type=text],td textarea{display:block;width:100%;min-width:0;margin:0;padding:2px 4px;font-size:13px;line-height:1.4;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
+td textarea{resize:vertical;font-size:12px}
+select.ed{background:var(--ed);font-weight:600}
+.aitag{font-size:11px;color:var(--mute)}
+.play{padding:1px 8px;font-size:12px}.play.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rowbtn{font-size:11px;padding:0 5px;margin-top:3px}
+.utt{border-top:1px dashed var(--line);padding:4px 0}.utt:first-child{border-top:0;padding-top:0}
+.uttx{font-size:12.5px;font-weight:600;margin-bottom:2px}
+.jrow{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.jrow label{font-size:12px;color:var(--mute);display:flex;gap:4px;align-items:center}
+.jrow select{width:auto;display:inline-block}
+.chips{display:inline-flex;flex-wrap:wrap;gap:3px}
+.chips button{font-size:11px;padding:1px 7px;border:1px solid var(--line);border-radius:10px;background:var(--chip)}
+.chips button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.muted{color:var(--mute);font-size:12px}
+td.slp{background:#fffbea}@media (prefers-color-scheme:dark){td.slp{background:#2b2714}}
+td.slp input,td.slp select{width:100%}
+</style></head>
+<body>
+<div id="lock"><form id="f" autocomplete="off">
+<h1>전문가 채점지</h1>
+<p>전달받으신 비밀번호와 성함을 입력해 주세요. 음성은 이 브라우저 안에서만 열리고, 입력하신 내용은 암호화되어 저장됩니다.</p>
+<input id="pw" type="password" placeholder="비밀번호" autofocus aria-label="비밀번호">
+<input id="who" type="text" placeholder="채점자 성함" aria-label="채점자 성함" style="margin-top:8px">
+<button id="go" class="primary" type="submit">열기</button><div id="msg" role="alert"></div>
+</form></div>
+
+<div id="app">
+<header>
+ <h1 id="title">전문가 채점지</h1>
+ <input id="reviewer" type="text" readonly title="성함을 바꾸시려면 페이지를 새로 여세요" aria-label="채점자 성함">
+ <span id="timer" class="small" title="화면을 보시며 2분 안에 조작하셨거나 음성이 재생 중인 시간만 셉니다"></span>
+ <span id="progress" class="small"></span><span id="unsaved" hidden>● 저장되지 않은 수정이 있습니다</span><span id="sync" class="small"></span><span id="warn"></span>
+ <span class="grow"></span>
+ <label class="small"><input type="checkbox" id="auto" checked> 이어서 재생</label>
+ <label class="small">앞뒤 여유 <select id="pad"><option value="0">0초</option><option value="0.5" selected>0.5초</option><option value="1.5">1.5초</option><option value="3">3초</option></select></label>
+ <span id="playpos" class="small"></span>
+ <button id="bAdd" type="button" title="재생 중인 위치에 빠진 발화 행을 넣습니다">＋ 지금 위치에 행 추가</button>
+ <button id="bSave" class="primary" type="button" title="⌘S / Ctrl+S — 입력은 자동으로도 저장됩니다">저장</button>
+</header>
+<main>
+ <ul class="guide">
+  <li>선생님, 채점에 함께해 주셔서 감사드립니다. 이 채점지는 <b>AI 의 전사·판정을 보여 드리지 않습니다</b> — 선생님께서 직접 들으신 대로 적고 판정해 주신 값을 AI 결과와 나중에 비교합니다(블라인드 채점). 화자 칸만 AI 가 추정한 값이 들어 있으니 듣고 맞는지 확인해 주세요(고치시면 노란색).</li>
+  <li><b>▶</b> 로 그 구간을 듣습니다. 「이어서 재생」을 켜 두시면 행과 행 사이 소리까지 끊김 없이 이어집니다(위쪽에 「행 사이」가 보이면 행이 없는 구간입니다). <b>빠진 발화</b>가 들리면 그 위치에서 위쪽 <b>「＋ 지금 위치에 행 추가」</b>를, 한 행에 <b>두 사람의 말</b>이 섞여 있으면 바뀌는 지점에서 그 행의 <b>「여기서 나누기」</b>를 눌러 주세요.</li>
+  <li><b>아동 행</b>: 들리신 그대로 적어 주세요. 발음이 표준과 다르면 <b>표준어로 적고 실제 발음을 대괄호로</b>(예: 「했어[해떠]」), 알아들을 수 없는 음절은 <b>X</b> 로(음절 수만큼). 한 행에 발화가 둘 이상이면 <b>「/」</b>로 나눠 주시고(예: 「응 / 나도 봤어」), 발화가 다음 행으로 이어지면 끝에 <b>「+」</b>를 붙여 주세요. 나눈 발화마다 아래에 판정 칸이 생깁니다 — <b>의미유형(여러 개)·화용기능·화용 적절성·문법 오류(여러 개, 없으면 비워 두세요)</b>.</li>
+  <li><b>성인 행</b>: 전사는 필요 없습니다. <b>발화 유형</b>만 골라 주세요(여러 문장이면 마지막 문장 기준). 아동 행의 「직전 성인 발화 유형」과 반응 지연시간은 이 값과 시각으로 계산합니다.</li>
+  <li>확인하신 행은 <b>☑</b> 해 주세요. 입력은 <b>자동으로 서버에 저장</b>되고 「저장」(⌘S / Ctrl+S)으로 바로 저장하실 수도 있습니다. 같은 비밀번호와 <b>같은 성함</b>으로 여시면 다른 컴퓨터에서도 이어서 하실 수 있습니다. 작업 시간은 이 창이 선택된 상태에서 2분 안에 조작하셨거나 음성이 재생 중인 시간만 셉니다.</li>
+ </ul>
+
+ <h2>① 아동 및 검사 정보</h2>
+ <div class="wrap"><table id="tInfo"></table></div>
+
+ <h2>② 발화 채점</h2>
+ <div class="wrap"><table id="t2"></table></div>
+
+ <h2>종합</h2>
+ <div class="wrap"><table id="t6"></table></div>
+ <h2>작업 시간 기록</h2>
+ <p class="small">입력하신 성함의 날짜별 합계(서버 기록, 한국 시각). 같은 성함으로 여러 창을 동시에 여신 시간은 한 번만 셉니다(* 표시).</p>
+ <div class="wrap"><table id="tWork"></table></div>
+</main>
+</div>
+<audio id="au" preload="auto"></audio>
+<script>
+const P = {"v": 1, "iter": 600000, "salt": "mM9Y6L45Xhwq0JFW10rQiQ==", "data_iv": "dTwpTm0r+0t0NkXc", "data_ct": "gUXMFnlSDEoP5UgTpVdLGuRUiHpzuXSnw5+w5oAFAqgO15JU5mRpIaafjJEARF8EK3kM4k3kriK5yltRq4GxjKxQ/Xv2DDO63jN9gWS8Lvnr6oKO6n1lBrXCLW4+iwlu3VluFzSZAf6V5I5RzxcZVQU9EJr7vz4QT2UyQvxxtT7yZR4bpqesUAKJjhcJBf5LbgX5EqcA7zNKCMVB3CNzWaREyrip6MBZ3n59qrAYzNaZHjmVB8DbO69NUb6Fd5YqDttyISnIUE5TJmckVL5zGXSWsXP7cpisj9g0dv6sRUZJ0uJmyFvBMywNSFiTlWUdT9QhSOicDsaECRLst5Rfz71/IAqqfjpsP9tb9tqdbx9rMLAZ6GJkSSCA1UQTMxPLYm24pf4/iW1UpduWTOL/YoYkHWUrnOnxE1VtGPPJC7f9FE0GieGMU+uFjn7rIUO8O5UYt0HwnFuEr2QxqvoG6K/+ntatOndNyAC2QKPgbpOy4AaemDJUIl7GE1nHXAyO9k/egtEgZmLP1E8dGHuYKtx7DdROK5n9wBktkYT91ZwWjlfmQC/HiXTrkAilzfcQLxZgeihXwb8CPUzTj/cduRPzW306mfQk+DQ0HfHLlXzlN24uQJPNb0pE2rc5QKBmMA/IiD0SdKAzeX+IWLy6PRGP4HsoikX9ufNtJz6zf4RO9iRTjb2Q9jljWZWgvJQ0TGXdJTgL72jScknIgK+HHbavJS+2sBg6GpZ4OQ9LZjvLY4LJW4T8TP/d3OA730IX1xAb96Nr9QMUTADOGA1ne3RcZVTl1M6k5OKwe3y5asHPwiZWygthBlF3PCsX1UJ/itEHONajCf1jd+ASmkl7OaKcWDL3v1EGYuG+ODGqkGA2Yo1vfe5a4ZP1OvbUQbtnACJthCMyYFN99jbSdRIRC2gYznuP2mOso3RkuUUNuukBl2kx8UpaGsMotscbtAQQh0ODv3GlhDuOp12mxlOLOXkValKQUq/VHp5WY11ib/x1aQs31vgbSoIfX0crxDlCJwfjLnQuUyLaQ+F/iOpWdQi3MVGJb2cRkZ070zFDETMfWNqkRkpGqyki2kjU6DWbXc9REyJ0DEyoaSuDl9RGl/6LWZT5mIQIPUqb04DW2UGmiLlXu2vV1KWllijRcrySvoluBrAPPKOxJv+x5M1vgGsU6PrrotgY/jNoem58cndYMBJyemDKQ5rDLWngOmY0g17CftP517T2xlMjwYeWl1cG3mYAs7RcCGt7fggwxT0lvilOAkh9ffFpTGRPCMqzInALIZxpJQIKzV5WJPHcS83JloVKJ1ZR+4jGNXcPPhioUVYgjxTFa+xLoFy52tb+rvWdqjuQwvDDx/AMxw3Sp6DzLxVPr3BfPBju9XUR37pbJZqozsUTfnAGNpJv2ySJwlmzBllkT3HbRqOcsj4eH0ZMtiWRODbizDQE5loYUcQ6MvKdhT5X7gpcP2MnC+fuArf3FJhXAMPxbcVdevGcsN2YDdlnF2bpgtw7C7J7a+K/Kt61LODPoyQVCMWdXOSnaqN0wfYfPuo4VhrA1LIM3TU1Vrf4GAf7qD/y90FzvtlFEvesbmiJCqcW31MyrKS/ClZyTVQp7OWdT24BqTCa1/B8BDgR1jl9D7ztgFk9gqKezj3B2izWf1/IysGr2SNZasvPrWwJ4vK6lvlhzhTDACFkeDyXc7Go1mOKC0yZxrosA3uVWBEFA2e8XjVujwt3fnbffAlebIxmHcpiRoISftNvCymaG1JpHwyQGhRM3MK/D8XGz6r53AexgIiTpXmevLFqHfHhO+dlON5hQ+x7nK9PmG8BSMtHYgpr3t6eC+J83uSdx+t8wjdonn6tPom7YOT35Xd1FuiLR7tvM58Oad0zpK2srX76J43+siTCCZYbbN2cOjRTCSotJAutB7Ti6ZomPTD2HarsK93v9UpWWQbvcGojkq8ZRu+8TKgOBiaIkGaE/fsbyZfxZmlFdXBkHXj8NlFIAvAVyFRFrGH1JNYz4Au7SkJ4ghB/ZT9zLMpISEVQLG2rZMUZ942pDCkRc/KXZfrDrwlvLU/apKvsnt4fwAmYKckkCT+8UshbuepU5N+tH+X1VYpz6fSDbeu7lBMH/4EmtW7E9K+Dmes2yZJFKl6TDNklekalTrI5V1DR3rbS0IGqyrcXZL/kB3o1CWDW9Or6epKP08qfckhk6QVVYhKvGF6xawg42B79yMJOqkUudZlIZCMJwOl5MVkNtMzrzmtv5iu1Bh2utn39H58wmCCAZ3ExDzOSv3gtc/+B/upWJauhB4en33ycYpyF1+f08mQQaLcp66Z0TdEhw+bZHzLMF8s8a6SNmrJpU0KIuT3ynDYGMrZNg0ENzttawaezkuVzOM4GHvfOglax+wP6uSGbMyP01LtbWnmIRkSNKkSx9bignDcgIbzcv/8fma/Fr1mGRZP1PGSqSyoMs2CV9Hrm9a6TtGpQm4IQYICnh6y7yPHSKgsw33zKTPVFsSj7JjWpLshbegUlFfK8KIWpVjkcNTyeyxI2gggiOLqDFCjhE2CzDRLt0eSuSTSae3pAcJSNCzfU6gfjE2S2bR6zEGVQ3kM/GRQQ3qo81Cahl5j1N94IrRa1Yl8p5XoAxRzkQRLsT1EllS6pk8Mh3n/6OpfF8Hqpp9OifflULQEtt/kqDIoeejysgYxp4FYry7YHfnngGpCDa100Bde1R68uhRyMJc8VTKFoQAWvvSUaornf4i6ygYU6bIGKnO6gHKFs19MVLHLxAZ5kEMvVLwfQsjwBFwAdMzD3mUyg29XIf19Y092MA7e8tfugerX6HVf+b3a6Q5z07jq2ZqFkRh/FGvb7LvpKiuXQkEYxTSNZpAmIcGl2jhVBC02LwePeCLXx8qMXnI2COCnt5Y0FGGygCudz2eYJdvXeqQGOxM9/zPMNd/N7+OYr/K6RyrLQkg2FGkZOr6viL1RWKJ7Xe3AQP++L0T22tjScxp6utku8UHub4zmgoWXjCR5MBvuWeqgUVqTEQ7g4c73dVhIT+uwhb+cDpHY14DZCc0zKJ5nMgxoVdd9nr8MST35ACo+m5x6ECi9GdTOQ80Q8gUVf6XY8P1YIt1vTn10akQzj0+/Ob3A/uK47p8OfdRWFVrn5UYWzBDhW0U7Rgp09jC7gRs2k+TfFc2UCScu/4MZD5mOYdnjfHWL0qmVElMg4jj20ZDA2MhrdFrYqaNEVKNWIDM2dI52kwWLBuNKfZiDOz/N2tpgn1f0dxKys6ZBunYXsWBYpEwM93NAsbgmxiWnR3HcMm6v6sdvVEDyE/BJWnD1FklO8XONRi0INHq4gWvg60kDzp5NqxydWaR7DQ81Xmb5eq4f7/w9exc3E1fV63Cnm4hS2cN/kvoorD/EilRKX4AgUSGxUWcXQx6KmMtdWKX9euvFZf5nZ08uK4j0in7FUvkisOO4LDcRQH8FNFrfKQEIsEsnfjBdRsLhFgj+3erbQTFB1z6VJF+/swGzWuLkH8wkrOPjA228KFg5gCWm8Hndb/gEGaoc6iBGDEFK+/z1RjccVudnr4vJ+l/vXwFvX67YLHIOauRmB8gDRcfSQAdmxOayaH6N8PKCxz6zI50TIY1Vu5tQxQPaH/y3zbtZ0Ng2xh7oDy4cKJaQXF8DMZiDCkzMtsxdGmayFQP1uXxw9BNk+pvyGz8ju6RpUrgtOgvl/VaLAbogtPsW6ou1oZ2fnEOHlN3idWOV+fsxzXrwDkGEVl0aR1xrSTj4mJ3Z5K4jVUTXokNAf+b++qUZPWjvCzcf90Qxfo9dpnjROdRJituHYvRJoUqAr80kmu+dA7ADWcniKRFarBOLbRJNRodyGkGN0WKAkdZLVC3yi+wtGNJeySmmaS4EKpfn9G5h35jiNPU4u4vpgdY+PF710ZKdaUNTyQzLi42T+hgE7yL49ZjqxPYmik9DPbALjTmmV+OTb282EMJ+yafSa8CK0bhTCGkatl/4OiLp8PmCucvvGnKuL7wUbbjXY6YYTFXDPb90nRRO9J8CEtY3wCeV524fLv78klkoIjlI84B56XBEqQ3oz9bGlLun0qZdwiA4GiFL1a3MCQFyB3Xii+O+nKbLmznvC3FKvjnOzosk0bhVcBKgjdDsuUU8kvLPubiZtnDM8X1wSBAXSFp+bxBDIRR5frnnAoAWn8FGVb68fUUk/9B/ETkqoBxdh3eg+QYmhEmLQb3HzpyqXOXYZvyNMcIJP3UVwTliNvcZhi4nHOrXZLH4YjBFb4ZqgdDKfTsrYQN2I/YjPA0P+9GOxPHeIJbIIJ6OnGBsOYuvq793Cj+3ETA8YuLVmdlOt1VaIwr46eODNz6sBbgXHAXLmL4Pku1J5vRxqLHszYGfI7/4+rrI0wLhLzg8RB/D2VurKy1i/y4b74jgs7CAq6hCX1WjrA+3kApNzZqrcLBO6Iqjy4UBsvo0VFgi4GmSXHmX3tO3EbLMiflIaZduUozo3nAG6eHLPj8thngDHtxA8Z4fyfjd9n5iVlyCUBwvABVqqZ99SEV4S4wt5ExoWwaVukSawOXOrl2CQEWPWS6pH/qVcpuU++w53vteQ8wqG9/XAwgZlZyDI91Wut7jugvy2kPciuO+yriSBwESG8Wrr4wHMbWLg567mbg1VL+0Wq55Qz1bvO6R6WE9qJifRjk/m9IGF3P+JeBKU+lqPCg+CmKvQSECro4gf2Wk+cd+WI6M/VU3lBLnMtDadSXlS/m7wAb+QMtA1JHKMl4zUvQEwil/is+BWfoS74WGCkaK8KTB7IyjWw91SVB9YSyDHLgLZZ5c7TITiE1L8rHzurrzH87dY5BIAhHZIzZI2nQQaJBKN2rWLJV+rmhN2ygLqhJ/zefKVkgN8MpkAjDsWCKjOhmjWpitVE3M++gz9vw2vDPEz5iIsZ7sg5p9nfv2NnlVa2uqN5EesJLmtpJxWbOzSI+IqwU9iAXiuw3kMw4zRcADaPpg6XOIBndxTGqKl7o9Q8xfl5+d5ZjKjEtL82/pusfYamPRODneZMRzLuKLXJAQMXywLlH0OmmLU7EuPibgejZ+cJSiuDZgXAxYzxgvf/BChhXFWxr5kTl4xme1++b3oy8UzyBlhDEsN47zu6VLCy0TDjcqOUsYGCLsRNL9rG0MVBuPAuYTYZFJCDoMNbYb3f7zbjc6tc1/ovrbbWJHR2w0EZi2CfZK+1GeGuLNr8SaIeywXPTQG8c58jH3W+vCNJc4lk/PaffKvM0ZpvESpjOwFdl02gw8J+h9PEIp7fU4l2ucM9OuzE5wCC/TH6g6V8ilDGj2rW19kM7GTSQhQgDoqd3TBMQeV7nmdWSbVZatMd3OYPrMEZRu3QO325NjRWMMKf0oSQ0Ih6LLpzdhiaCfG9lqrXB+S8oys8E28vu1nwo2Gue6MQfVMJos4v8Ke3kXQMtBRRQnqo3RKYskdCRWKRVRw2xswST5fJ48go83tcPR8aiBq5jHpEkzO86i+4dpkgJ4M4rqhyK+SXlEzvbI0pMCjIGip3RZqnXCFL/g0GpOcwVgmTEzi2iD7SfWm5bad7sReGnX5F1ZD6Mutx8OOUXYlsoL66xlD4nXnFrrOnXwN4QaPqGaL6j+oGZURPZd7kfXM19nEFWGanXWPI9GX8GmuB12zKwedXs4sWVZe+wlOa5/iIf0Zmnx0Ql1bt3CzEISZS1+5jGGQadgy479yj/6WzyZR+Mrg7cTaF67SnjrnMCAL4govA/BLrkPwvX+eY0hJQe2qZ4QEhgBgp2FTV/C0lhnZaKnJhMSyR14/Vb+t+gLJD9DXMGcebY0i8AOQOzpaWICOfKMHskerfp73sYyOBo/TscTp8lAIsqeKGrGXc1e+bDiZgXJFQW/09qHNDUnEi44cW3CcQyORZ2oJUh1lMtDXIf+Y+C3T+RQrEGDH8RjWjAX2dUCHS2WVKyAw84Nj+lm61VdU39aYh7cyMmpWLCf8FdUq9wG0NySIm1h3RrXU4k65S52UVSxJNUxk9a9R8gQ0oZjbBpMTBJZLAPpFz2c/7J5F7CCuWed4gCU6lqluR6hWHQECdI1Np74u83kia/5KhvO/08NzY5Q5ibMzoIyCTixJv22gN0XZ+un91UiXqKtExBs9f0okUydnqiJrACX061QmqRL+QeTO2tgJUW83zTGlvmyh/eW//PIbah/DPf8E2IGt9k+A3GUFUp5zOLXwEXkyCmjnocUkWNK5FCL+/7t/iGITEYxV3FbFf18PE3ZwFeFOuv8gavt8ftuAPHStDzDLjaMFiag87HlTEjG0+yHTxY0ZGBMc62CYNfDMgWZxpCI6J34I6n7U9ZKZXFsS7exWORTjDX3Ke6jcLSvZSJ8ieu+XvJ0AxgpL/trF2M+DUvXTruSOSJM4g3VS/3ka5dkH3ruz8AB6xFwA/ILMWoD2Lx96e0fXA0kvZ0zcacEh8A+ARQun85LPFDZlTz6p81YRddBt9SGUKKR6OYBlYYcZb0ubOtRJWlRpL0ZOIPz199bGzTyudOAXPwVzrPqZQknYRwazi93sTbqA/IqT5TZ3uQyiPzuRfiOogGX04tcRofkp6rwo1JLyA8ml9lHsJ/b+O4olFgC7EcV/IbR4JihqzQ6DyB9Nz6gpjR1Le7gHmnX5nW4nDUpaJM7wkdrVLYXn2rKtMZvDhfwa9dD8IKyulBG7T4TokbG3TFjgfRB1tzpdHmkd/mtcG699R/WvB/n4v/SNfLi9AZlwr+UORB0sC6+rTGV+xi2ZOmGtJ9+nc72QKELY2Ue/QkRX9xGEheP4KMiR2xIBh2wq6BUBRYdXajcP5J2HuF04hm9AP7o057uqlZKMzIGGf78pqaxI3vrZfsD9c9E6JC5I9vwrMj7JgaAyM1Wdu+RLDXb1NhZ7RgLGCecIcr9DzQ++fWuxzidYtJHUH6dIgFM2zpHMiBWI5g3SFVuPdKxxuFpwh/0KlZIq+kM+Jwu8it1bzjo5QVNufSu2zJ363Ct43HdDm9QGKBqRYBZhr/Ly1O/H1pjk8ED91FtyB5x0MfIuQkEEviQY3x1+rFB1GdZGjP6i1xEGGsiTcuePZRTbJHE4bgTT+7NO7TnFR2VUaYeQYxifmSSwOnD3abqHE4SSYPfDD3huNn0LB9BWjoASHlVO2cx0ItW8tCjbYJaZlPeeUk8zoE5N2XoLVFx019GgYUhcUjcHdvYUae/oqQtjSpB5BMujXZTs96XZrT3oNdgKgwozZA24n1cmYXhTOT0oOb8uj5n6aWd5TyDfrTfvdYMVqVQNcAOZh2sAFKWlvlXkxtvuKs7HQzjl+efvqDWGcmT+oTNPu1dP3Rr+OhCVZ2vIyjem3NqVE05eU5OLluaCnk/FnYZ4c9fmHCAf8uCjk7j8IblkRI6PTN+W6OVPrS8h/AaYUOtmRC7AubF94jkPTRHz63X7aqutJwwcv8kY21t2Z9cM/k9QqSzMwZSk6yU8L1wo4bN0RUHM5HeP21I8c3tAc6i9gg/5QYnZDS1y7A9n/lbxnh6LYagHZFjfPvtHhXJya/0n7ddBiJry5pyDZjPhINm6tO3doVFNvb9NMUMH0wrGeDHtCrCsgEAY0TPGXXc5U8p97RAwDahbDyhY0gNHur5Gc3H7me+DPaK23D7GnWwhpynFRG+871w0SVYN3aHIGuXzPumcE69HWLA6H6yqedlQ4iW8Jae4L4Zf0ZBtKsEopC3FGTmeUngaNnKsx6STKKxK5pesAN3B1dD+GJ67wI28QKghmFc3jG2IejOrPvn2rrxq5x0XrjCWwDle6R3LwgaRc22RwcIZUsM2LXuJ34TSa1yHbDtv4zcPY9Iwb4zlbqETsZjdQJRQMRi40PEC3qhy1Y/Wxz635L2Ux7cg80emEITyMDTmi5EJWjkakr+J/gRaIMl3FbpSO6Oj+ZOLllksEUD5h2Svkak1aVhMVkkSR+eNBXkwub6jxSqfdi2NAEA78pku7x4JkROxGTHQ7rZsHTUESbPW+asVRzEaTHsPsYv+miZh+vba+n+boRFr3KAIJJvoKStWg6s+vktPywK7PcpZ+XSKzmNy7cNJekTXrcMxPRG1b/k45MVU/7VX+U2WV4PoXfv08h1o9/2usFKY/+K6Y3BK/tKwLGif9w9zVRItN4D2IkolMQZie2wSNWdfwBIBzss/QMLyyWvGqB1OkPX66okGJkQ36ssaE0chrTCoFJrZ+75OFm0M5gLGPKlaZsUIDrJXIkz+8EDjZpvHIo8iNplfQzBvO8+4t+ysykXXfEGwpRoGqpwGBD125xEM8EORaIQCtkF6WgZUgvcfeQP4kd2I1LLOxhOY6kMVaUwL8cGN1QpQIOrMaePPSaIIzX5jDlyNgewqUMXUi8HJ0KWtuy6nUzrgxTvkZDrMig+ctWF/zlUIj28210J2loty8E8E4CGHin+DrqP70Wwiu4LFzENO70XHe1HylGwaOxNQbkPUy5D/T9aAmYb5KixvBne0+eVRV+a/dIEEF4sB2pEKexOltbeppyUtf7pM1JOAjigD1m5P2vnYgUOaIaMaS3AqPR0+IoYekNeMHKLHBhyuBXPCL/X4jSIKfT5YqaYMifyNYc9fh7w5dD//34NsmtSKkYJr4limkCYg/MlAVJj3kk48v1a2CLmh+GZV1y6E9xrGII7f3Gq2O/CsMy+MjblHywK7DTMZ9xhaUuI1O3HUf+QAGmS8b3yhxG34My8n0SISSeRO8HVuDahIWklLTbfVDa7M6hvifkvS4D3MJka24iiyb9Z1i8qQUbpOsZaEPyvFGrJ8SEwdHdMtoIc8T6Ddhk5wUKWvq/Ec7TVxpsqFs0gswLk/zgKhQSTGeQZZT67rXuah1wOCyBJ1amWhyfQJdOCd09i3qKvHGd6zgnw+z+p5zhLP0JuMyOfLIjRO+O51rtUJhCsD06UcIxHY0R0+cFlh0QTKUAFb6oQdRgGkiRYC72HLLnyNLMYIdGbcLi9yKNIFen1DSC2q1y4HFxkR2p1oi2tFRtXvpfMQ5c02sWlxox8oL3nbUfQ1elGEZxnMFkGb/EJ4w43GeJGvg/GkgWwY80S6Zd7QhYcok1TdOjkkui2KPip+Ulp2UFlnW7QMm9kAJnka6TXkEBoLCL+TB1Izj10Tq0+ZKjeoTcdrV9HORgIhKJuJqvrO7bPj3yFvp+zcFo6R5AV2FSvy1HMFQL5tStB5OIf7e0BmFOS2wDwtHX6Rb8l+VwD0/YqB/jlJwz85bimt8HHR21/XstrNP8l7AePRv2+K7XX950zc6wlqXQorMVjWnyl0xEZfSzs05t7Qw0BoGYH7qu9k+Wphu1ePEMjYAGTPsNHdELfcJ9BViMYGm8eR6tWWUBFAl6mh7Q8JT3PtSIvDjrbjjwbQsw+qQu6buDfqdR5GYhG8QGN1Q8MmtEd7+kG8VGQapxYXK/QGarse4FJ6dyAKuqyApxbU2xtfQzhr1HY1tf7o1g7VLGpcrSnCH7LBkLR1nV8fBNGiezbLvYSjpKFNUIASFIjGj0So6lkxW353GNC5PIHXKfirHkMzqUPIQ0RyLctdB1ZWt05WwTBUHaoZ0JNAbKGnH6+xu615AZLFYcfymEqZSGi0t8nydLIzjGhXDsXu3swq62ElcCoC0+IwE7m3FFRg7MG68JTf158SynGmPpzwLcV4wRBB5HyKbBjZBTweguUvUGvNLFBpzzk5wOMcuHAbV+zC+Q1Jh/bjRUbUlE/YMN6V4DTs6dNAfly/SkGJuURyiVr883QZ7w+rIFTKaixM8U9xWJnoShcoGx8bLKf0oQIzekgId+yEs29DW6/tehUJLpEYBajWtPQNDoi252uJqMsovrK+tzwcp2Z8mwNhdKGgfA3ZkfEbtnZkNrX2BcOT6Y7Iw+yrBkWGw/Ql+EqfTJ5Prp7mILkJGKMQ1h5O+IEgEnhy3ujZGSZycq8YMD69RN4wqZs/B6jdGxmhKGC4TRtFr2K033ZRv7+gweFTcb8jaoWWMTIMc4C0A5YQM6XSVJ9Io/Q0NHrZzDuik5/IIWXrMPyI+V/xgLL/bnltUR2GQOxwc98Jinz+dxSrzc0KJ6x53NfCqSnvvtv1j0ulyK8hKWOVG87Rf9myO7LBWOJhyjlOrQi2cwy5uTXpWwJ6RLuJwfqNvLXhj9glGRQ46YUfHQef82VjnfMhkH56y9yLeELFIUOfonXOf5jLnDmtg3FsH+oDagDK55WrknSV4oEnjTNAI6Ef5rWcFqVnVIVZl4/ckoyChDbPc7T+NJQ6oDFS8hfQGhlc/wWa/rx0H2s3FABpXTOicnV+BZY1rHmYmL5Nz4No9NBPElSAEaZ8c7LeMjWglngGAg7zjctaUY9QydaIjuolUr6xTqt4wproROMY+GMB5BpzJzmttqxZHjqU970pVPbVrVJ3n15IyA2d9Q0C0s0Hzm64RmPEw+qY4ZvnveQk4K7WAGp2Mthrjmd3ohkf9ZVs9Z2yFVVHxiJpO/TIteOGD+sl7M17Ab/F6tJ9QHFVQ9WFcnHBcpa7gNrjcg8AYzDU1TBkuxZSHOZ08FhGIfjhssgXwZktsqzLXlJ01Dyrktit+uJ7aS2nQOPSftxNxYjDzx26Goexe3UBBoPWB9tkH7EsC8gDOmN4mGxsR0pVahrYNAGcwfxTxxRVnejRMEfeVawu74rebbdp9Aov7cRvhwJqkT2s7Tu9OwiGjAD+SxBB6JmswwORzupoVD6Js4GnPJs5Wfs+izNVbyM4CvjO7LfiuoJLRRZ3gbj4jMEVITqCKOCkfdNNtBFxQ7+s+KMkpRp70ltYtqnZ1UGpJ629IN7qICPI+0mbJC7/2JZuD4kxseY1bOOfl6IGM/BdfxOVmFMi1LwNNJLJ/6K2Mm8vIBVjR2JTbUxzyhWokTskk4JSj1h+Es6XG9VHnnasSreHVn+JvK/gRPRUxFXPt9hR33bRgkZV6TjzIJv6jtq1xQ8nZ/ke1UhJ23H+zZ0L5aiBS6g51NoS1pyqwmUa8BVN8NOxZbcMZpx4xE/erdiktVqUDmhdHmj1zkERCOQoeIixRy9oZOObNMJmPnq+tt+FfbG3tZ3BOFx65zKmGPFc4xEQJrfKRz0OnPd30kAVMgdUfXKZtWQf9xJW5CoJbH8099AbZizdSVSLmd2//vnvli4wktyu+EFmo5n/ssBY78dDrhBSvM247fkYBi7bIP36MUOHBUAHxpP8UW1INAWrpm7cydTua5YTMxkSngdVeVhylis060loLi+p+Usf9I9u1eDQEvrLJgvm33xlqc/ATmqgz+q7GQ9U/VnX6ND7PvXKgT3Aaf6g367HPpO8N4deKlUOmaDhjqyln4CsV54SJTdP7g0xazF2OFJejC+iKz7rz09+zm5My/iIoQfN+oW1wNPOSTvuYzZPJ4ULu/SlS6oMtxoxDCc66H9B8vskH2XipyUL12qm+kYeEAQpLNxRVOwCbNu8fAgpxbBAIEdmFnNAIuPZuQ3H+z2h+BQ8RYjBesv6NPu9MXv6yjCw02xbPugS3Q/1LZIyYEbf9DCxmeSwuJUijTbetCqfeBlofoJuvHTVR3xZ2NXMoDB0hUQKLUPdxUUaoxQBgu9SLqiEs6MXYsRD4fatSAUb1CPhX14enIQxNF4BCoKimWwyYJ/0oMXMQ8NWHxqBkM4AwDvPVGvr1nNQlRSB9u1C8713x+fc0jgyc1dujBm+E5VOiv4gf6tQEZuLEc/58Srt/kaKCQ+awKU9XEoweoHX/g0SJEdJgu3wRYf7fSh0V2q0RiIKHC1+sV6teF+0ICLwzp+Msv8PR1Zn51iFIxhViNQ8HiiVvFGJodYAFBE9dbUbQOFGUohUWvu+jGaxp5DgZ4mxvdr5XagaW9hex/Q9VSIsRr83lomK7gbgOYaEfFfHsZHogTbmqMnhelABcyvCeli0DXIpdnfAuEfq767cieycJYJaCz08QcVCiqt1LNb/QDOsnls81Yk7zOtbA2ttmYQ2urzTX3/dzxJ4baCWufYjqRmAd5kvMRIjoCA8B12Q9LBXObQe7lR3YG5QzW9uOpUFI57rf9+OI01A/Ox8o6pvKaQH6GZ3Cpnrc+3KyetCTiYlTEmPb8kdZxLwGlAfrbsv7WkrzzQS5jgwQac86vblKLyca0TgbCY+Tppvpmn7BEBajAdR11n5il47MMUXdUuzjaPOfoVzD/Lb03X5CfS+TFXht04ODXzuHXQsr5fE4wqIFMgDFo0QzPE8eIJlIOfXDG59FftvpKizSoINPSCa5gzQZTdiTGszpXmiZCJkBKWwZmBmcDeSUbMHcRFDyMu4lk0qKn9fds9Sam8KCvjSa0z0lnExEdaaQzj3DbxSwBbR4EMxEQZOTeUgw3xIPrEWSvVvxx6aofl9k2SSiJslglJDem+RCeEYpiYyaww1VMjFw7IACuf7NSQsc+1ryXiVN/9u9x5PasLh+1AVkDlNFC7Mk2jcXxUC8o0/h0QIKGuACjmSxF+bA86kNSOvfmwCTEcJ6/ulP6NzPl7IOPP/LBkJB9WRt5RCW6aSy5OiRicQQziWUIpe8Fdf4M/FUkkp6+xgXBdcWxNeSwkna1bt4UwDX8mxzTRysKrpqLnT4gpkVOTjV4GUDAmMI0HeB4m3JZ/OTymcno+T033xDQ0wWzNMipZi5CjXlVsWp/TDqa0QlJppJMCyXTp9rIlWVwkIRMWOghE+i2HVr7AZ63ShPmOpCINQPxjAqjLbtbhxPtFDCR2e5qdcLTBh+6qdQgifVbgFSAQyMMR3OAWWdC9HvJy5Z7i0+81ew50xevwX+HnjSbW2YoXb/N2zrZPCSJoLMvhUku/ZK8y+iSODcyYnmnLaY9MYzpgisXSOBFP8/lrkq5Y0o5bIqd/75oQV4VbTTSi8U1PmpZaCb2y0rZIQU5J/AaEhtwndFegZ1ufrYD9pn7GvIiBqwhsztgiiQlUyIzDwrRGtKYquVnCvq+XoIu4rplr88QtD0tHzvdKQIkfgMpdDhegAk8PqPOx/rtlAj25hPeWdE+DH9mp56HjDaX2QtU7gnGtNYEL9JjdQGWMHA+6snYNVTQAAcGg8sFKbLwfuuXzjQowWyCfFLX7D6NZLa7Ag0ZlLagEbegyYwqvMNFbkLXVu0UVb5quUUqLmAFEntaeS8/88MFKoBTTLuM3R/DOajjNW9mzq7ey3n3+oj0x6TJIxWYgHQAmANgoZ7W/86PvVV+R8OmTieW4UVge5Wu55wMZPCqc2m0ssIWbFkEVWWaTVIRmEFzHLeI4lu3Ae/N4J20lIGlaufFWJjkEqxPkhV3qcWLOGszjHcWgSlKN/Z4d9mlhex90qlRJmh+9s7oos+OyvjZARgqeGVqwIrXeQhdx+MY4d3p8fj1W4yJ/Z5R1JbBpqEjNI40H3kpxK2bA1wY9PFY+U+sUi2bC44Nvsj74gH9S4hUnFoR+pMjk06rPWX3hForE6XXIjuwOcza8hwg8cceNY5COZJn+Jh9dzuMkc6ncklPVl+UuVRwO53DQCFGYHxhSO4NvmDk6Lf1MAmXL78bfhySSRHtdXEi3zxKV6P1QqTSbg/0VnpZVKMYX6bXGe5CsvUSsnz3A7X4o6b8ine6s1ojC3RU3yPIPO4DopFoFJaXzQRG1m22yIDV5DRZCFv7n+MobVDo9/70D6I06RnQYRKtveW9emiBOijbeFxe1TALJbltS6P5NxBKrISFwjNY4OOW4e79bVqQXfo5fD7ALAVRprEXJ0GFt/lPM0EzkjOrUjbW8afX4xi7g4zyvfcdrgPGOdVl/Kk7KDzVsA8H5FyvZp0VjeNp9iwRIDmA65v/RuPcnIX/cf8HQ3AsfmQuZXwWj7DqZpEcpnMTD81HDMuKNfhZZ6jlbv6B+bVWuTeKEFML3ojeEGMuhj6yK0k7y4eTvYaX3xYLKZmrFJhDemrAQsFQz0zwrulz3Q6w0e6ak2t12ioXvDof5sTwLc2Kz4K/mHq69/c8L1c0Sa660icDAUqUcrcmjxAKkUsGduZEJ810mVLAqoWOi1DmqPn90CIBofDl2uMuOxvbzQvefPZnCohgvgKznvuj09y/vquaB3thVd3so4X9Qyf4E4DF9UQu6o2hQs70KDfRHFcvKr448brKyM57SGpWhzyDBXvw6Yju//nluDsoaGocg6v9GlpoN9ABDq7qnG/4/ZCYAdfCMlYJFaQ/oBOzRxPCLZv+1Umxj+nXLGT5/oPrp+du1+XKDSxiXi3wGmcMfSK1ripravZG9x+MOKvN/If8oWcXEo5dk+j3gi8leJ53q+fILRd8y8etOM0EQZzOuQSBxQICUsNFikKC9oTQuuqohyqthi54KIFlVcxO+VRnFOdSqcv09UCG3cBQi3EG6BLsKIMzZytedcyqUBeeCnFivIrS/tRB/NazPf6MrxwRPeO724QoY4nKAocH1typspiUkOQKHJ5OIlI38a9CWJ5OWyFDWivSDZKtl3OayDS54h6AZrUScj6v845leD6Fun3PHl9dfZlCFrNHd8dvPf7FZLDSykHmkazVvV4MyfWA3RLDve1AgNXNIHRN1sVwq/FKF8SizD7TxYPx1CwHHEy3dR9OvrZpTaS80ac1NVRAMlOHMJROMz2Z9GUPPahEq6pEIG3+itbKsw6EGxYE7Wc8ZvUNJ2GUy3jx0aRGAsnJPZkdhTM9Hhp0zyUrGYreazxfFyYhbxVKJKuGO+7OinuYWUPx60sogV/m4Bex6K9Wj404mSFAp7H4DaDC2rgzx9xt7xYsBO6iFdx+4iC+c951JAiWYVkOrALxL7BTXIB2kGGVpQPToSoKw/mbHaCgc74ApGCkhHavDYTYdbZwZvS7uJvIPBHEm7aB4EMHXyO3knUI7DIDW4TeB0N3qxRMyTNKNgpMXRvaxeyj4ix4sPZXuhpHk1rwW/8Rn8+eWucE7HuIaoYJJ9OLlYB8EJgQK8bEHlyV65gHWMiELkKq9O9529Lql0e2To7vVjjw/PG/TepsBPrQJ5BKPCM9yxgb/yr16Kgbkgfi1OCGYrQwxUF8DN1HDFaAhSHsd7einCprSC8YEvVZer29PVS3Uw7mHNc9RwaSxkeI7PnaI+Tsbki3PZWtxIBNu8U4vknUB01kzt/yUk35Bmr+HYJ7NOiGVdjduojG8xPlhfLIkq1RrXWr/pHvmu7dI5lyQRS4w0YtQv+7XniMdvxyIGUlQWXNDDFNjiE2WaribfV4+jPUMUcRy7lG2YXS8FI+Ze/0kdftEDqh/kJzrxEcCWaJCjLka0kFu8+DjqTLiqv5BQBJVExCAt4lxySZQTKVyuc3OPyCOQ/kz8VM+3DNDFjPrwIOgKBiTU5ElJWisspTfvxRgmmNBw44d/+/6hsGJFUnDT+f9N2cwO/xmD0EfuG0tVbyTInSclq4fbrvYAxsHtbBP65zC8HztBC7eV4WD/h7yk7sqHwT55xNWruJT3diC6n3Kb8mV2VEMW+hHpLBFyC9kGxKy4KKou8441wTo1wZk4uJCXw860/NuSfEiX5bDerkBvqPVff7hw7Tzqo467xY0T7coRd87kejRFfr6/erAq3+IeYM9DlRmc8XepdN2DfLeF+BrU25GDeocxS7b3vNTNZzHTRNp0lvriTKcSJNAyRjxOzAJT04qDALi/pOB2SNUtHq2ITV7dKY5PYywFmHGRXpHa4cOh7GqPtBHNYh0MkMM/rNGMxb6hs+R0+4kSdPbIHMGLSCNMuGriGNAz14EMY6Asb37Ojjj2d04Ay4axAMZ5c0EuGGT/kOZ35V3RGxRb/oimjipfYpjAF6EJ1uvRwpRW24WmNUXLwOLsyIc9l6dudpIv7xB1Mnh0LiwGgnVsspNnxP9Wm5cBgs4aqlSGXd6Ntf0Pf6OljAfBKSyjDAzISqozq83oBCdzY+YvJHpJnXAd+zi96SmGrsrPHV5pWqC0yi7AF3vm+XINS6J/HLq0tmzEbTftsB+8W9wcrwfa17s9I9c7v68b5SJP05sZ13VL1FL45UzPDQw7fvzJ3FJx/WzwZ8krJ7hFtpYZ/P9hIUXFp/EYYSHQk7ETtHyiJh9gCiorRztKacm3L/k8hm+purSyXNKM5H8iygUwZmOyuYVe/JyOnHEQ97/dDKfFoF/oP6T4nBdvx528zINj4oV/oNrpd/vNu1YtC4NJTDI7mX3drHsM8adG/goeaIlwP6TbCgc5zxoDF+K0jrSeqzVfsUcUhuRcqzxSS33+Ey+QTxEI5BpbZts4oWIjeAFF5gNYnE/Es1WjbIPmAB91SY4QpGFvJk9BJqxlb4/mH50fEMzf1OdwqbFmDmvrvz/yRCCiOimGWX92rwLV0WEeYpRZGwBWucUIi0FvrAMhWSIOonJ29gvTRxML7jfKtJsfvl0TQMI68zvNRmrZMP8lU7twa9OPw+y0OfmMZl8iJHH7mrLvJ8Uvv60pbMdmVdSG8Mft78BiW6BFwllY5pkKRsws2khIFbk76mgmLFv/0LyfVbZTsjdqgjzy4EnqWNvIeGI+kL0O90rTZ+NosPvvN911KwUx6FVo1juAuEBVR0YrNXppM6sdbWS3s+bk3AoZiIlh1lXxM4gns/D6XJX+8NJf4Dief+keX/Bjr5HqSVlRfWirBAighbSPNI2PlB5irzy8OftfdITVP+oMZGbywxmLLnp4oczy19ixkMklFbqLoQDEsSKdlg8plFlhMdBgT/C43B2TDp1A/+4yBdEt3zqL1P4Dhhp8F3Jz8y7UZHOjg+BbTGL22xTUEVgHqpOKMragfrO0VjVhF3m28+Ax1rEZDEYAQRbTLPPpXP5c4g3xwhjZxVRp4W+1ThjjykOVbaVGMWSYJH9cm0zfhwzKJ0KTYCrO04Fjehn48kntTp8Lo8SFE+4JDbLpjc0b0m6RrWJbG3T/M1m+s3d7kkWbj5aFGxpP0a1tFfm/E64MenrTlc+9rYwBsjkib3KCbNQVlLYmLzYtRvG8sTb9Q2WeUaVWo8Ly9JC0zCFurjzKAs9bc/gQG7H1vAWCYgsngKbvsY3ZPHK9ybn1ScLg0vVu34xla3RMjWcsha7Fayv0QvTACXVVOxxCV1o14H5ibRf20JyZ72/+roYKfXg/SMe/5xiHUX68bFL41UJDzyF1cwsbJVSnlaJ+zuU2w5IAOfbYUG0CtRhqVnd+dgJ/EQXHGmu8ZwL7I6SwEUwEjKXUG9GEBfru2UjQvYO/IBGfNj9wkOHWVhxYGvMdSdbDuxhBYvToY2iF4zcbx3lQp9G6Dkw24znjPsx18ttBudLfGpGARh//MqgQq8mqNYAqdNcezvR03/P7osjBkZUBc/d7OMYAOa8X37LmvmElhDJFwQUhcR0MJvJfObtkNleHSVUpolqm8UgpSwCJXsvd0yeY4RX1pFSsIbpuBlBAOv3lKBJfTYcTUZZim6C1c1upHQ0c925m+qlggo+BilUhSpXg/HL7y3v4jw/hFYIzXaJcJqkyPg23to8bRGbba8peb2JL6V7Kp9qqvT4mMeWNgZGm19uk+6bkk/lusO7VJblPEqMzzC46NoqsMLafjBzp9WEPQn8Vth1TZyTmb1ZlWZwrVxupHkQI4m4Yx31YNBJlZTYptEd7664NaWtMcJP+SftXfYRMrCay5GwCTPlvt5KtXK59hF1W0tOdp7ndbwepxdkeKemvY1LVN1tgewgoiokMeP184VrH+DhpfzPUFCLg0qLuVHQ1Pl0Kv8H/0BXoFP2jTbRowC1a72W4RYg9W+2Bd3KF5D4HrVFKNDBxe0p0qavN3/uHGvTQaY9qLTBIUse8Y2WwsuH3czMbCa+seTka1RkmrR8huZefU+lKI8mEBQlpgRTBdUpqV17g7mJJnQmy1hiC+/5wU+sWKT+6torYbEH/xN/FYMpTFk20EyJQ67zkwUjDWCNmBQwjujR2RH0I+ZyfI5GpK3zdBTLMGAkROqoMFlELfjZtabdpl3Ygf0aRRAWs4OJ/VRZa8rThcGusBdD0WeTPn25e/oVKlwdpv9sbKEN5w/BJQ2exWKWTLFlzLtFA8w0MxhatOr4Im4kt7xi1YkemJr08HuSFCxMjAlabWevnh6pOop+B897YWVqAvEVKWEU/A6xy1Hg5hmcu2GIzB04oQzpcsoAcomcSrFTgmgCb2CLlhERBv3MJMaBHmhzypOa5uKs4js53ygn8FW4n9pJPJfAQVglOVg6I+gYqCQGxfEKFwpvfbaD3/mnudQFJFOdIM36LMLO4qW/BIPE0AUDbqrSl7TihZRsm9wc2VwePwX2hg/ZkMJfYBgbnKcKs9uXYgBoiQ+k+RAPUVFN64lxOnlRg2ndWdE6O/etYwOe4Z5TIXHtnCCws93cREWcBeQ6+XvSKu0FUbkJqIN3aXjrYgiK9rwC5FQ26wZKt5FGqmL7bK53C8tNgI3ZtC2kknHThDdng8QHBGpW3m0hXvaLv+zFTVdY2viI0uVBlVWqOTxl5R8gjrR2Gvdndb0LkQdguQH7A24JAumJPu1CKI5InSLcZv988WHpwj32X4znrgbLUduSLJ2f7CJPtT4lXRVvuZ1oRrwtefEVQG81lHT/aTrWfqwxQezToki1mAcMJD4YhluR4aTbTiWLpfHyiiloGVON8ZtNB0NFkNAcuWG2eU+wQ8cc7pMFHsCgLjB4fAbt8W1FtbrUUCIZ+NC9zwYhLPtD6MOanl/XQl1sXPypauRHRYoU85QahxBHDyWhIKv9dqxdrQiVsOxBF5urdH0yS4N5St2Avvy6Ild9FC95FXdhotSRZRvu5QNgz1YdrUZ5VtznT2jsg+ITeDhkeZANv/W14LpXMeLtf+V1sEstr8goXRzwaWNApmKFv+OQ79x7+366FMwdbwnOP6FpEqSxN0mY2oc8LSA9AmtG0EgEwUYq5sOZTHrnegL0/9fFgtjc7UyZX1s5o1RXfPFXqjOOEkO5+TdJNRytEuHRtsyyW3zqwbe9FMdLMMNHM/pk1lYDDAR/x5BUiei0xP6+Bt6D10gQSA1hUQxzcSXrrmvjar7IHiUXOunPhe46rvYLOO7+isNJ2okimcMXFsPYYpYbsWLsnIPGyLYku9eirKRZCjFoAysNsctpY1KyP1WTJHydtZ9kKzO+61SZwsn7bToOmZ0cgkD6/QS2emhZ1S7QPUSeQUyAgNJuYHwjRLU1KP2eSXRbYMHn5m+kW261PZuWID0P3LAWoOAFl8Rtz79e5RYlRjA30VgGjFjMbVyi5Yca4vw8OryKjT3LevucCG//4EpCAsfM3L4leeM4JzZMmUbm4nmq/rIKK8SqgufVwBE+SbMjB9L03BYbv0Mtj/LzMSiLfL8MTW9EcloWW1eIGET+KVD06NYoyRGUHbLkEsURcq2qLhB9WtPlimQEr++Ic+IAxlgV3YIrK42X0t7qS1TRlJJveIAY/TkENbDngb/9uw9CcqhuTvHXivwrhVGiJsEN+U/tF/xu/tsvakA==", "audio_iv": "brqxAOomMwiOOYyl"};
+const B = {"url": "https://emdtsqpcoyejugtvbokk.supabase.co", "anon": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtZHRzcXBjb3llanVndHZib2trIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjg5MzgsImV4cCI6MjEwODk0NDkzOH0.laqPbKc4JXN4k514BUqdYQOnbAZvhG4VWhwvW_lxBPo"};
+const b = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+let D, KEY, ACCESS, store = {}, storeKey = "", cur = -1, ROWS = [];
+const normName = t => (t || "").normalize("NFC").replace(/\s+/g, "");
+let confirmName = "";
+const sha256hex = async t => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))].map(x => x.toString(16).padStart(2, "0")).join("");
+const b64 = u8 => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+const $ = id => document.getElementById(id);
+try { const w = localStorage.getItem("lsa-review-who"); if (w) $("who").value = w; } catch (e) {}
+async function derive(pw) {
+  const raw = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw.trim()), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name: "PBKDF2", salt: b(P.salt), iterations: P.iter, hash: "SHA-256"},
+    raw, {name: "AES-GCM", length: 256}, false, ["decrypt", "encrypt"]);
+}
+const dec = (iv, ct) => crypto.subtle.decrypt({name: "AES-GCM", iv: b(iv)}, KEY, ct);
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  $("who").value = normName($("who").value);
+  if (!$("who").value) { $("msg").textContent = "채점자 성함을 입력해 주세요. 작업 시간과 저장 내용이 성함별로 기록됩니다."; $("who").focus(); return; }
+  $("go").disabled = true; $("msg").textContent = "여는 중입니다…";
+  try {
+    KEY = await derive($("pw").value);
+    ACCESS = await sha256hex($("pw").value.trim() + "|" + P.salt + "|lsa-review-db");
+    D = JSON.parse(new TextDecoder().decode(await dec(P.data_iv, b(P.data_ct))));
+  } catch (err) { $("msg").textContent = "비밀번호가 맞지 않습니다. 다시 확인해 주세요."; $("go").disabled = false; return; }
+  if (B && confirmName !== $("who").value) {
+    let known = true;
+    try {
+      const who = $("who").value, local = localStorage.getItem("lsa-blind:" + location.pathname + ":" + who);
+      known = !!local || !!(await rpc("review_open", {p_access: ACCESS, p_reviewer: who})).state;
+    } catch (err) { known = true; }
+    if (!known) {
+      confirmName = $("who").value; $("go").disabled = false; $("go").textContent = "이 성함으로 시작";
+      $("msg").textContent = `「${confirmName}」 성함으로 저장된 기록이 없습니다. 처음 시작하시는 거라면 「이 성함으로 시작」을 눌러 주세요. 전에 작업하셨다면 그때 입력하신 성함과 같은지 확인해 주세요.`;
+      return;
+    }
+  }
+  try {
+    const enc = await (await fetch("audio.enc", {cache: "no-store"})).arrayBuffer();
+    $("au").src = URL.createObjectURL(new Blob([await dec(P.audio_iv, new Uint8Array(enc))], {type: "audio/mpeg"}));
+  } catch (err) { warn("음성을 불러오지 못했습니다. 새로 고침 해 주세요."); }
+  start();
+});
+function warn(t) { $("warn").textContent = t ? " · " + t : ""; if (t) console.warn(t); }
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) { if (k === "class") e.className = v; else if (k.startsWith("on")) e[k] = v; else e.setAttribute(k, v); }
+  kids.forEach(k => e.append(k)); return e;
+}
+const fmt = ms => { const s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+const fmtd = ms => fmt(ms) + "." + String(Math.floor(ms % 1000 / 100));
+
+// ── 저장 형식 ──
+// store.items[행 id] = {ok, cells: {spk, text, adult, j, note, start, end, added}}
+//   spk 가 없으면 AI 추정 화자. j = 아동 발화별 판정 JSON 문자열 [{sem:[], func, appr, gram:[]}]
+//   added = "1" 이면 채점자가 넣거나 나눈 행(start·end 가 있다)
+const it = id => (store.items[id] = store.items[id] || {cells: {}});
+const cells = id => (store.items[id] || {}).cells || {};
+const spkOf = r => cells(r.id).spk || r.ai_spk;
+const isChild = r => spkOf(r) === "아동";
+const ADULT = new Set(["엄마", "아빠", "기타성인"]);
+const parts = t => { const s = (t || "").trim(); return s ? s.split("/").map(x => x.trim()).filter(Boolean) : []; };
+const judg = r => { try { return JSON.parse(cells(r.id).j || "[]"); } catch (e) { return []; } };
+function rebuildRows() {
+  const base = D.rows.map(r => { const c = cells(r.id); return {...r, start: c.start ? +c.start : r.start, end: c.end ? +c.end : r.end}; });
+  const added = Object.entries(store.items).filter(([, v]) => (v.cells || {}).added === "1" && (v.cells || {}).deleted !== "1")
+    .map(([id, v]) => ({id, start: +v.cells.start, end: +v.cells.end, ai_spk: "", added: true}));
+  ROWS = [...base, ...added].sort((a, b) => a.start - b.start || a.end - b.end);
+}
+
+// ── 시작·저장 ──
+function start() {
+  $("lock").style.display = "none"; $("app").style.display = "block";
+  $("title").textContent = "전문가 채점지 · " + D.recording;
+  const who = normName($("who").value);
+  try { localStorage.setItem("lsa-review-who", who); } catch (e) {}
+  storeKey = "lsa-blind:" + location.pathname + ":" + who;
+  try { store = JSON.parse(localStorage.getItem(storeKey) || "{}"); } catch (e) { store = {}; }
+  store.items = store.items || {}; store.ov = store.ov || {}; store.reviewer = who;
+  $("reviewer").value = who;
+  $("tInfo").append(...D.info.map(([k, v]) => el("tr", {}, el("th", {style: "width:200px"}, k), el("td", {}, v))));
+  $("bSave").onclick = saveNow; $("bSave").hidden = !B; $("bAdd").onclick = addRow;
+  addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); saveNow(); } });
+  rebuildRows(); renderT2(); renderLower(); progress();
+  const first = ROWS.findIndex(r => !(store.items[r.id] || {}).ok);
+  if (first > 0) setTimeout(() => rowEl(first).scrollIntoView({block: "center"}), 100);
+  startTimer();
+  if (B) serverOpen(); else $("sync").textContent = " · 서버에 연결되지 않은 채점지(이 브라우저에만 저장)";
+}
+let timer = null;
+function save() {
+  store.updated = new Date().toISOString(); clearTimeout(timer);
+  timer = setTimeout(() => { try { localStorage.setItem(storeKey, JSON.stringify(store)); } catch (e) { warn("브라우저 저장에 실패했습니다"); } }, 300);
+  store.dirtyServer = true; schedulePush(); progress();
+}
+window.addEventListener("beforeunload", e => {
+  clearTimeout(timer); try { localStorage.setItem(storeKey, JSON.stringify(store)); } catch (err) {}
+  if (B && pendingSec > 0) beat(true);
+  if (B && (store.dirtyServer || pendingSec > 0)) { e.preventDefault(); e.returnValue = "저장되지 않은 수정이 있습니다."; return e.returnValue; }
+});
+function counts() {
+  const ok = ROWS.filter(r => (store.items[r.id] || {}).ok).length;
+  const child = ROWS.filter(isChild);
+  const utts = child.reduce((n, r) => n + parts(cells(r.id).text).length, 0);
+  const judged = child.reduce((n, r) => n + judg(r).slice(0, parts(cells(r.id).text).length).filter(j => j && j.func).length, 0);
+  return {ok, utts, judged};
+}
+function progress() {
+  const c = counts();
+  $("progress").textContent = `확인 ${c.ok}/${ROWS.length}행 · 아동 발화 ${c.utts}개 중 판정 ${c.judged}`;
+  const pending = !!store.dirtyServer;
+  $("unsaved").hidden = !pending || !B;
+  if (B) { $("bSave").classList.toggle("pulse", pending); $("bSave").textContent = pending ? "저장" : "저장됨 ✓"; }
+}
+
+// ── 서버 저장(Supabase) — 전문가 검토지와 같은 방식 ──
+let SERVER_VERSION = 0, pushTimer = null, pushing = false, retryTimer = null;
+async function rpc(fn, args, keepalive = false) {
+  const r = await fetch(`${B.url}/rest/v1/rpc/${fn}`, {method: "POST", keepalive,
+    headers: {apikey: B.anon, Authorization: "Bearer " + B.anon, "Content-Type": "application/json"}, body: JSON.stringify(args)});
+  if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 160)}`);
+  return r.json();
+}
+const stateOf = () => ({type: "lsa-blind", items: store.items, ov: store.ov, reviewer: store.reviewer, updated: store.updated});
+async function encState() {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name: "AES-GCM", iv}, KEY, new TextEncoder().encode(JSON.stringify(stateOf())));
+  return {iv: b64(iv), ct: b64(new Uint8Array(ct))};
+}
+async function decState(iv, ct) { return JSON.parse(new TextDecoder().decode(await dec(iv, b(ct)))); }
+function mergeInto(base, over) {
+  const out = {items: {...(base.items || {})}, ov: JSON.parse(JSON.stringify(base.ov || {}))};
+  for (const [id, v] of Object.entries(over.items || {})) {
+    const b0 = out.items[id] || {cells: {}};
+    out.items[id] = {...b0, ...v, cells: {...(b0.cells || {}), ...(v.cells || {})}};
+  }
+  for (const [k, v] of Object.entries(over.ov || {})) out.ov[k] = v;
+  return out;
+}
+function syncMsg(t, bad = false) { const e = $("sync"); e.textContent = t ? " · " + t : ""; e.style.color = bad ? "var(--err)" : ""; }
+function refresh() { rebuildRows(); renderT2(); renderLower(); progress(); }
+async function serverOpen() {
+  syncMsg("서버에서 불러오는 중…");
+  try {
+    const res = await rpc("review_open", {p_access: ACCESS, p_reviewer: store.reviewer});
+    applyWorklog(res.worklog);
+    if (res.state) {
+      const srv = await decState(res.state.iv, res.state.ct);
+      SERVER_VERSION = res.state.version;
+      const merged = store.dirtyServer ? mergeInto(srv, store) : srv;
+      store.items = merged.items || {}; store.ov = merged.ov || {};
+      refresh();
+    }
+    try { localStorage.setItem(storeKey, JSON.stringify(store)); } catch (e) {}
+    progress();
+    if (store.dirtyServer || !res.state) schedulePush(0); else syncMsg("서버 저장됨");
+  } catch (e) {
+    syncMsg("서버에 연결하지 못했습니다 — 이 브라우저에 보관하고 다시 시도합니다", true); warn(String(e.message || e));
+    clearTimeout(retryTimer); retryTimer = setTimeout(serverOpen, 20000);
+  }
+}
+function saveNow() {
+  if (!B) return;
+  if (document.activeElement && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) document.activeElement.blur();
+  store.dirtyServer = true; clearTimeout(pushTimer); push(); beat(false);
+}
+function schedulePush(ms = 1500) { if (!B) return; clearTimeout(pushTimer); pushTimer = setTimeout(push, ms); }
+async function push() {
+  if (pushing) { schedulePush(); return; }
+  pushing = true; syncMsg("저장 중…");
+  try {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const {iv, ct} = await encState();
+      const res = await rpc("review_save", {p_access: ACCESS, p_reviewer: store.reviewer, p_iv: iv, p_ct: ct, p_base: SERVER_VERSION});
+      if (res.ok) {
+        SERVER_VERSION = res.version; store.dirtyServer = false;
+        try { localStorage.setItem(storeKey, JSON.stringify(store)); } catch (e) {}
+        syncMsg("서버 저장됨 " + new Date().toTimeString().slice(0, 8)); progress(); return;
+      }
+      const srv = await decState(res.iv, res.ct); SERVER_VERSION = res.version;
+      const merged = mergeInto(srv, store); store.items = merged.items; store.ov = merged.ov;
+      if (!editing()) refresh();
+    }
+    throw new Error("다른 창과 저장이 계속 겹칩니다");
+  } catch (e) {
+    syncMsg("서버 저장 실패 — 이 브라우저에 보관 중, 다시 시도합니다", true); console.warn(e);
+    clearTimeout(retryTimer); retryTimer = setTimeout(push, 20000);
+  } finally { pushing = false; progress(); }
+}
+
+// ── 작업 시간 — 전문가 검토지와 같은 규칙 ──
+const IDLE_MS = 120000, SESSION = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2);
+let lastAct = Date.now(), pendingSec = 0, WORK = [];
+["pointerdown", "keydown", "input", "wheel", "pointermove", "scroll", "touchstart"].forEach(ev =>
+  addEventListener(ev, () => { lastAct = Date.now(); }, {passive: true, capture: true}));
+function active() { return !$("au").paused || (document.visibilityState === "visible" && document.hasFocus() && Date.now() - lastAct < IDLE_MS); }
+function startTimer() {
+  setInterval(() => { if (active()) pendingSec++; renderTimer(); }, 1000);
+  if (B) setInterval(() => beat(false), 30000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && B) beat(true); });
+}
+const hm = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h}시간 ${m}분` : `${m}분 ${s % 60}초`; };
+const todayKST = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+function renderTimer() {
+  const mine = WORK.filter(w => w.reviewer === store.reviewer);
+  const total = mine.reduce((n, w) => n + w.active_sec, 0) + pendingSec;
+  const today = mine.filter(w => w.day === todayKST()).reduce((n, w) => n + w.active_sec, 0) + pendingSec;
+  $("timer").textContent = `작업 시간 오늘 ${hm(today)} · 이 녹음 누적 ${hm(total)}` + (active() ? " ●" : " (멈춤)");
+}
+async function beat(keepalive) {
+  if (!B || !ACCESS) return;
+  const n = pendingSec; pendingSec = 0;
+  const c = counts();
+  try {
+    applyWorklog(await rpc("review_beat", {p_access: ACCESS, p_reviewer: store.reviewer, p_session: SESSION, p_active: n,
+      p_confirmed: c.ok, p_edited: c.judged, p_agent: navigator.userAgent}, keepalive));
+  } catch (e) { pendingSec += n; console.warn(e); }
+}
+function applyWorklog(w) {
+  WORK = (w || []).filter(x => x.reviewer === store.reviewer); renderTimer();
+  const t = $("tWork"); t.innerHTML = "";
+  t.append(el("tr", {}, ...["날짜", "채점자", "작업 시간", "접속", "처음 ~ 마지막 기록", "확인한 행 · 판정한 발화"].map(h => el("th", {}, h))));
+  const sum = WORK.reduce((n, x) => n + x.active_sec, 0);
+  const tm = x => new Date(new Date(x).getTime() + 9 * 3600e3).toISOString().slice(11, 16);
+  WORK.forEach(w => t.append(el("tr", {}, el("td", {}, w.day), el("td", {}, w.reviewer), el("td", {}, hm(w.active_sec) + (w.overlaps ? " *" : "")),
+    el("td", {}, String(w.sessions)), el("td", {}, `${tm(w.first_at)} ~ ${tm(w.last_at)}`), el("td", {}, `${w.confirmed ?? "-"} · ${w.edited ?? "-"}`))));
+  if (WORK.length) t.append(el("tr", {}, el("th", {colspan: "2"}, "합계"), el("th", {}, hm(sum)), el("th", {colspan: "3"}, "")));
+  else t.append(el("tr", {}, el("td", {colspan: "6", class: "small"}, B ? "아직 기록이 없습니다" : "서버에 연결되지 않은 채점지입니다")));
+}
+
+// ── ② 표 ──
+const rowEl = i => $("t2").querySelector(`tr[data-i="${i}"]`);
+const editing = () => !!document.activeElement && !!document.activeElement.closest && !!document.activeElement.closest("#t2") && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
+function renderT2() {
+  const t = $("t2"); t.innerHTML = "";
+  const W = [46, 34, 86, 120, 300, null, 170];
+  t.append(el("colgroup", {}, ...W.map(w => el("col", w ? {style: `width:${w}px`} : {}))));
+  t.append(el("tr", {}, ...["듣기", "확인", "시각", "화자", "전사(아동) · 발화 유형(성인)", "아동 발화별 판정 — 5. 의미유형 · 7. 화용기능 · 8. 화용 적절성 · 9. 문법 오류", "비고"].map(h => el("th", {style: "white-space:normal"}, h))));
+  ROWS.forEach((r, i) => t.append(rowOf(r, i)));
+}
+function setCell(r, k, v) {
+  const x = it(r.id);
+  if (v === "" || v == null) delete x.cells[k]; else x.cells[k] = v;
+  save();
+}
+function rowOf(r, i) {
+  const child = isChild(r), adult = ADULT.has(spkOf(r));
+  const tr = el("tr", {"data-i": i, class: (child ? "" : "adult") + (r.added ? " added" : "")});
+  const play = el("button", {type: "button", class: "play", title: "이 구간 듣기", onclick: () => toggle(i)}, "▶");
+  const ok = el("input", {type: "checkbox", title: "확인"}); ok.checked = !!(store.items[r.id] || {}).ok;
+  ok.onchange = () => { it(r.id).ok = ok.checked; save(); };
+  const split = el("button", {type: "button", class: "rowbtn", title: "재생 중인 위치에서 이 행을 둘로 나눕니다", onclick: () => splitRow(i)}, "여기서 나누기");
+  const tm = el("td", {class: "tm"}, fmtd(r.start), el("br"), "– " + fmtd(r.end), el("br"), split);
+  if (r.added) tm.append(el("br"), el("button", {type: "button", class: "rowbtn", onclick: () => delRow(r)}, "행 지우기"));
+  // 화자 — AI 추정을 미리 고른 채로 보이고, 고치면 노란색
+  const sp = el("select", {"aria-label": "화자"});
+  const now = spkOf(r);
+  sp.append(el("option", {value: ""}, ""), ...D.options.speaker.map(o => { const op = el("option", {value: o}, o + (o === r.ai_spk ? " (AI)" : "")); if (o === now) op.selected = true; return op; }));
+  if (cells(r.id).spk && cells(r.id).spk !== r.ai_spk) sp.classList.add("ed");
+  sp.onchange = () => { setCell(r, "spk", sp.value === r.ai_spk ? "" : sp.value); tr.replaceWith(rowOf(r, i)); };
+  const spTd = el("td", {}, sp);
+  if (r.ai_spk && !cells(r.id).spk) spTd.append(el("div", {class: "aitag"}, "AI 추정 — 확인해 주세요"));
+  // 전사(아동) 또는 발화 유형(성인)
+  const mid = el("td", {});
+  if (child) {
+    const tx = el("textarea", {rows: "2", placeholder: "들리신 그대로 · 여러 발화는 / · 다음 행으로 이어지면 끝에 +", "aria-label": "아동 전사"});
+    tx.value = cells(r.id).text || "";
+    tx.onchange = () => { setCell(r, "text", tx.value.trim()); rowEl(i).replaceWith(rowOf(r, i)); };
+    mid.append(tx);
+  } else if (adult) {
+    const ty = el("select", {"aria-label": "성인 발화 유형"});
+    ty.append(el("option", {value: ""}, "발화 유형 선택"), ...D.options.adult.map(o => { const op = el("option", {value: o}, o); if (o === cells(r.id).adult) op.selected = true; return op; }));
+    ty.onchange = () => setCell(r, "adult", ty.value);
+    mid.append(ty);
+  } else mid.append(el("span", {class: "muted"}, spkOf(r) ? "분석하지 않는 행" : "화자를 골라 주세요"));
+  const jd = el("td", {});
+  if (child) jd.append(...judgBlocks(r, i));
+  const nt = el("textarea", {rows: "2", "aria-label": "비고"}); nt.value = cells(r.id).note || "";
+  nt.onchange = () => setCell(r, "note", nt.value.trim());
+  tr.append(el("td", {}, play), el("td", {}, ok), tm, spTd, mid, jd, el("td", {}, nt));
+  if (i === cur) tr.classList.add("cur");
+  return tr;
+}
+function chips(opts, onArr, onChange) {
+  const box = el("span", {class: "chips"});
+  opts.forEach(o => { const bt = el("button", {type: "button", class: onArr.includes(o) ? "on" : ""}, o);
+    bt.onclick = () => { const on = !bt.classList.contains("on"); bt.classList.toggle("on", on); onChange(o, on); }; box.append(bt); });
+  return box;
+}
+function judgBlocks(r, i) {
+  const ps = parts(cells(r.id).text);
+  if (!ps.length) return [el("span", {class: "muted"}, "전사를 적으시면 발화별 판정 칸이 생깁니다")];
+  const J = judg(r);
+  const put = () => setCell(r, "j", JSON.stringify(J.slice(0, Math.max(ps.length, J.length))));
+  return ps.map((p, k) => {
+    const j = J[k] = J[k] || {sem: [], func: "", appr: "", gram: []};
+    const cont = /\+$/.test(p);
+    const sel = (opts, key, lab) => { const s = el("select", {"aria-label": lab}); s.append(el("option", {value: ""}, ""), ...opts.map(o => { const op = el("option", {value: o}, o); if (o === j[key]) op.selected = true; return op; }));
+      s.onchange = () => { j[key] = s.value; put(); }; return el("label", {}, lab, s); };
+    const arr = key => (o, on) => { j[key] = on ? [...new Set([...(j[key] || []), o])] : (j[key] || []).filter(x => x !== o); put(); };
+    return el("div", {class: "utt"},
+      el("div", {class: "uttx"}, `${k + 1}. ${p}` + (cont ? "  (다음 행으로 이어짐 — 판정은 발화가 끝나는 행에서)" : "")),
+      cont ? el("span") : el("div", {class: "jrow"},
+        el("label", {}, "의미", chips(D.options.sem, j.sem || [], arr("sem"))),
+        sel(D.options.func, "func", "기능"), sel(D.options.appr, "appr", "적절성"),
+        el("label", {}, "문법 오류", chips(D.options.gram, j.gram || [], arr("gram")))));
+  });
+}
+// 행 나누기 — 재생 위치(없으면 행 가운데)에서 둘로. 뒤쪽은 채점자가 넣은 행이 된다
+function splitRow(i) {
+  const r = ROWS[i];
+  let at = !$("au").paused || $("au").currentTime > 0 ? Math.round($("au").currentTime * 1000) : 0;
+  if (!(at > r.start + 150 && at < r.end - 150)) { warn("나눌 지점에서 재생을 멈추신 뒤 「여기서 나누기」를 눌러 주세요(행 안쪽이어야 합니다)"); return; }
+  const id = `${r.id}~${at}`;
+  const x = it(r.id); x.cells.end = String(at);
+  it(id).cells = {added: "1", start: String(at), end: String(r.end)};
+  save(); refresh(); warn("");
+}
+function addRow() {
+  if (!$("au").src) return;
+  const t = Math.round($("au").currentTime * 1000);
+  const id = `+${t}`;
+  it(id).cells = {added: "1", start: String(Math.max(0, t - 1500)), end: String(t + 1000)};
+  save(); refresh();
+  const i = ROWS.findIndex(r => r.id === id); if (i >= 0) { setCur(i); }
+}
+function delRow(r) { const x = it(r.id); x.cells.deleted = "1"; save(); refresh(); }
+
+// ── 재생 ──
+let stopAt = null, playing = null, follow = false, followFrom = 0;
+const au = $("au");
+const rowAt = ms => { let k = -1; for (let i = 0; i < ROWS.length; i++) { if (ROWS[i].start <= ms) k = i; else break; } return k; };
+au.addEventListener("timeupdate", () => {
+  const t = au.currentTime;
+  if (follow) {
+    const i = Math.max(followFrom, rowAt(t * 1000 + 50));
+    if (i >= 0 && i !== playing) { mark(i); if (!editing()) setCur(i); }
+    const r = ROWS[i], gap = r && t * 1000 > r.end + 300;
+    $("playpos").textContent = `▶ ${fmt(t * 1000)}` + (gap ? " · 행 사이" : "");
+    return;
+  }
+  if (stopAt !== null && t >= stopAt) { au.pause(); stopAt = null; mark(null); }
+});
+au.addEventListener("pause", () => { if (follow) { follow = false; mark(null); } $("playpos").textContent = `■ ${fmt(au.currentTime * 1000)}`; });
+function mark(i) {
+  if (playing !== null && rowEl(playing)) { const p = rowEl(playing).querySelector(".play"); p.classList.remove("on"); p.textContent = "▶"; }
+  playing = i;
+  if (i !== null && rowEl(i)) { const p = rowEl(i).querySelector(".play"); p.classList.add("on"); p.textContent = "■"; }
+}
+function setCur(i) {
+  if (cur >= 0 && rowEl(cur)) rowEl(cur).classList.remove("cur");
+  cur = i; const tr = rowEl(i); if (!tr) return; tr.classList.add("cur");
+  const rc = tr.getBoundingClientRect(); if (rc.top < 120 || rc.bottom > innerHeight - 40) tr.scrollIntoView({block: "center", behavior: "smooth"});
+}
+function toggle(i) { if (playing === i && !au.paused) { au.pause(); stopAt = null; follow = false; mark(null); } else playSeg(i); }
+function playSeg(i) {
+  if (!au.src) { warn("음성이 없습니다."); return; }
+  const r = ROWS[i], pad = parseFloat($("pad").value);
+  follow = $("auto").checked; followFrom = i; stopAt = follow ? null : r.end / 1000 + pad;
+  au.currentTime = Math.max(0, r.start / 1000 - pad); mark(i); setCur(i);
+  au.play().catch(() => warn("재생하시려면 화면을 한 번 눌러 주세요"));
+}
+
+// ── 종합 ──
+function inputTd(obj, key, opts) {
+  let e;
+  if (opts) { e = el("select"); e.append(el("option", {value: ""}, ""), ...opts.map(o => { const op = el("option", {value: o}, o); if (o === obj[key]) op.selected = true; return op; })); e.onchange = () => { obj[key] = e.value; save(); }; }
+  else { e = el("input", {type: "text"}); e.value = obj[key] || ""; e.onchange = () => { obj[key] = e.value.trim(); save(); }; }
+  return el("td", {class: "slp"}, e);
+}
+function renderLower() {
+  const ov = store.ov, t6 = $("t6"); t6.innerHTML = "";
+  [["typical", "이 녹음이 아이의 평소 모습을 대표하나요?", ["대표함", "일부 대표함", "대표하지 않음", "판단하기 어려움"]],
+   ["summary", "종합 소견(아이의 언어 발달 수준)"], ["feedback", "채점하시며 판단이 어려웠던 점·기준에 대한 의견"]]
+    .forEach(([k, lab, opts]) => t6.append(el("tr", {}, el("th", {style: "width:320px;white-space:normal"}, lab), inputTd(ov, k, opts))));
+}
+</script>
+</body></html>
