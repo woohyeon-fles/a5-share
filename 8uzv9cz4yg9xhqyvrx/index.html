@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>전문가 채점지</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mute:#555;--line:#999;--head:#f0f0f0;--adult:#fafafa;--ed:#fff2b3;--cur:#e5edff;--accent:#2f5bd3;--err:#b42318;--ok:#2e9b4b;--chip:#eef1f6}
+@media (prefers-color-scheme:dark){:root{--bg:#15181d;--fg:#e6e9ee;--mute:#9aa3b2;--line:#444b57;--head:#232833;--adult:#1b1f26;--ed:#4a3f14;--cur:#1f2b45;--accent:#7b9cff;--err:#ff8a7a;--chip:#232833}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif}
+#lock{min-height:100vh;display:grid;place-items:center;padding:16px}
+#lock form{width:100%;max-width:380px;border:1px solid var(--line);border-radius:12px;padding:24px}
+#lock h1{font-size:18px;margin:0 0 6px}#lock p{margin:0 0 14px;color:var(--mute);font-size:14px}
+input,select,textarea,button{font:inherit;color:var(--fg)}
+#lock input{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+button{padding:5px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+#lock button{width:100%;margin-top:12px}#msg{min-height:1.4em;margin-top:8px;color:var(--err);font-size:14px}
+#app{display:none}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:2px solid var(--fg);padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+header h1{font-size:16px;margin:0 6px 0 0}
+#reviewer{width:140px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.grow{flex:1}.small{font-size:12.5px;color:var(--mute)}#warn{color:var(--err);font-size:12.5px}
+#unsaved{color:var(--err);font-size:12.5px;font-weight:600}
+button.pulse{box-shadow:0 0 0 3px rgba(180,35,24,.35)}
+main{max-width:1700px;margin:0 auto;padding:12px 16px 120px}
+h2{font-size:15px;margin:26px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--fg)}
+.guide{border:1px solid var(--line);border-radius:6px;padding:8px 12px 8px 28px;font-size:13px;margin-top:6px}
+.guide li{margin:3px 0}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:4px 6px;vertical-align:top;text-align:left}
+th{background:var(--head);font-weight:600;white-space:nowrap;position:sticky;top:0}
+#t2{table-layout:fixed;min-width:1560px}
+td.tm{white-space:nowrap;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--mute)}
+tr.adult td{background:var(--adult)}
+tr.cur td{background:var(--cur)!important}
+tr.added td.tm{color:var(--accent)}
+td select,td input[type=text],td textarea{display:block;width:100%;min-width:0;margin:0;padding:2px 4px;font-size:13px;line-height:1.4;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
+td textarea{resize:vertical;font-size:12px}
+select.ed{background:var(--ed);font-weight:600}
+.aitag{font-size:11px;color:var(--mute)}
+.play{padding:1px 8px;font-size:12px}.play.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rowbtn{font-size:11px;padding:0 5px;margin:3px 3px 0 0}
+.ed{margin-top:6px;padding:6px;border:2px solid var(--accent);border-radius:6px;background:var(--bg);color:var(--fg);font-size:12px;white-space:normal;width:250px;position:relative;z-index:3}
+.ed div{margin:3px 0}.ed button{font-size:12px;padding:2px 7px;margin:0 3px 3px 0}.ed b{font-size:13px}
+.nud button{font-family:ui-monospace,Menlo,monospace}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;z-index:20;max-width:90vw}
+.utt{border-top:1px dashed var(--line);padding:4px 0}.utt:first-child{border-top:0;padding-top:0}
+.uttx{font-size:12.5px;font-weight:600;margin-bottom:2px}
+.jrow{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.jrow label{font-size:12px;color:var(--mute);display:flex;gap:4px;align-items:center}
+.jrow select{width:auto;display:inline-block}
+.chips{display:inline-flex;flex-wrap:wrap;gap:3px}
+.chips button{font-size:11px;padding:1px 7px;border:1px solid var(--line);border-radius:10px;background:var(--chip)}
+.chips button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.muted{color:var(--mute);font-size:12px}
+td.slp{background:#fffbea}@media (prefers-color-scheme:dark){td.slp{background:#2b2714}}
+td.slp input,td.slp select{width:100%}
+</style></head>
+<body>
+<div id="lock"><form id="f" autocomplete="off">
+<h1>전문가 채점지</h1>
+<p>전달받으신 비밀번호와 성함을 입력해 주세요. 음성은 이 브라우저 안에서만 열리고, 입력하신 내용은 암호화되어 저장됩니다.</p>
+<input id="pw" type="password" placeholder="비밀번호" autofocus aria-label="비밀번호">
+<input id="who" type="text" placeholder="채점자 성함" aria-label="채점자 성함" style="margin-top:8px">
+<button id="go" class="primary" type="submit">열기</button><div id="msg" role="alert"></div>
+</form></div>
+
+<div id="app">
+<header>
+ <h1 id="title">전문가 채점지</h1>
+ <input id="reviewer" type="text" readonly title="성함을 바꾸시려면 페이지를 새로 여세요" aria-label="채점자 성함">
+ <span id="timer" class="small" title="화면을 보시며 2분 안에 조작하셨거나 음성이 재생 중인 시간만 셉니다"></span>
+ <span id="progress" class="small"></span><span id="unsaved" hidden>● 저장되지 않은 수정이 있습니다</span><span id="sync" class="small"></span><span id="warn"></span>
+ <span class="grow"></span>
+ <label class="small"><input type="checkbox" id="auto" checked> 이어서 재생</label>
+ <label class="small">앞뒤 여유 <select id="pad"><option value="0">0초</option><option value="0.5" selected>0.5초</option><option value="1.5">1.5초</option><option value="3">3초</option></select></label>
+ <span id="playpos" class="small"></span>
+ <button id="bAdd" type="button" title="재생 위치에 빠진 발화 행을 넣습니다(단축키 A)">＋ 빠진 발화 넣기 (A)</button>
+ <button id="bSave" class="primary" type="button" title="⌘S / Ctrl+S — 입력은 자동으로도 저장됩니다">저장</button>
+</header>
+<main>
+ <ul class="guide">
+  <li>선생님, 채점에 함께해 주셔서 감사드립니다. 이 채점지는 <b>AI 의 전사·판정을 보여 드리지 않습니다</b> — 선생님께서 직접 들으신 대로 적고 판정해 주신 값을 AI 결과와 나중에 비교합니다(블라인드 채점). 화자 칸만 AI 가 추정한 값이 들어 있으니 듣고 맞는지 확인해 주세요(고치시면 노란색).</li>
+  <li><b>▶</b> 로 그 구간을 듣습니다. 「이어서 재생」을 켜 두시면 행과 행 사이 소리까지 끊김 없이 이어집니다(위쪽에 「행 사이」가 보이면 행이 없는 구간입니다). <b>단축키</b>(입력칸 밖에서): <b>스페이스</b> 재생/멈춤 · <b>S</b> 지금 들리는 곳에서 행 나누기 · <b>A</b> 빠진 발화 넣기 · <b>Enter</b> 확정 · <b>Esc</b> 취소. 한 행에 두 사람 말이 섞였으면 말이 바뀌는 순간 <b>S</b>(또는 그 행의 「나누기」)를 누르시면 행 안에 편집기가 열립니다 — 나눌 시각을 ±로 맞추고 「▶ 앞부분 / ▶ 뒷부분」으로 들어 보신 뒤 <b>Enter</b>. 행이 없는 곳의 빠진 발화는 <b>A</b> — 앞뒤 행 사이에 새 행이 생기고, 시작·끝을 맞춘 뒤 <b>Enter</b>. 행의 시각만 고치시려면 「시각」을 눌러 주세요.</li>
+  <li><b>한 행 = 한 발화</b>입니다. 행마다 <b>2. 화자</b>를 확인하시고, 아동 행은 <b>3. 전사</b>에 들리신 그대로 적은 뒤 <b>5·7·8·9열</b>을 바로 골라 주세요(전사를 적지 않으셔도 고르실 수 있습니다). 성인 행은 <b>6. 발화 유형</b>만 골라 주세요(여러 문장이면 마지막 문장 기준) — 아동 행의 6열에는 바로 앞 성인 행의 유형이 자동으로 보입니다.</li>
+  <li>전사: 발음이 표준과 다르면 <b>표준어로 적고 실제 발음을 대괄호로</b>(예: 「했어[해떠]」), 알아들을 수 없는 음절은 <b>X</b> 로(음절 수만큼). 한 행에 <b>발화가 둘 이상</b>이거나 두 사람 말이 섞여 있으면 <b>S</b>(「나누기」)로 나누시고, 한 발화가 <b>두 행에 걸쳐</b> 있으면 뒤 행의 <b>「앞 행에 이어짐」</b>을 체크해 주세요(판정은 앞 행에만). 5. 의미유형과 9. 문법 오류는 여러 개를 고르실 수 있고, 문법 오류가 없으면 「없음」을 눌러 주세요.</li>
+  <li>확인하신 행은 <b>☑</b> 해 주세요. 입력은 <b>자동으로 서버에 저장</b>되고 「저장」(⌘S / Ctrl+S)으로 바로 저장하실 수도 있습니다. 같은 비밀번호와 <b>같은 성함</b>으로 여시면 다른 컴퓨터에서도 이어서 하실 수 있습니다. 작업 시간은 이 창이 선택된 상태에서 2분 안에 조작하셨거나 음성이 재생 중인 시간만 셉니다.</li>
+ </ul>
+
+ <h2>① 아동 및 검사 정보</h2>
+ <div class="wrap"><table id="tInfo"></table></div>
+
+ <h2>② 발화 전사 및 분석 기록표</h2>
+ <div class="wrap"><table id="t2"></table></div>
+
+ <h2>종합</h2>
+ <div class="wrap"><table id="t6"></table></div>
+ <h2>작업 시간 기록</h2>
+ <p class="small">입력하신 성함의 날짜별 합계(서버 기록, 한국 시각). 같은 성함으로 여러 창을 동시에 여신 시간은 한 번만 셉니다(* 표시).</p>
+ <div class="wrap"><table id="tWork"></table></div>
+</main>
+</div>
+<audio id="au" preload="auto"></audio>
+<script>
+const P = {"v": 1, "iter": 600000, "salt": "12gVdRfKf636iLlTDLH5aw==", "data_iv": "Q1pQgRShf6bIblxb", "data_ct": "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", "audio_iv": "ZeWeoM58wUNXVEfg"};
+const B = {"url": "https://emdtsqpcoyejugtvbokk.supabase.co", "anon": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtZHRzcXBjb3llanVndHZib2trIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzNjg5MzgsImV4cCI6MjEwODk0NDkzOH0.laqPbKc4JXN4k514BUqdYQOnbAZvhG4VWhwvW_lxBPo"};
+const b = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+let D, KEY, ACCESS, store = {}, storeKey = "", cur = -1, ROWS = [];
+const normName = t => (t || "").normalize("NFC").replace(/\s+/g, "");
+let confirmName = "";
+const sha256hex = async t => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))].map(x => x.toString(16).padStart(2, "0")).join("");
+const b64 = u8 => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+const $ = id => document.getElementById(id);
+try { const w = localStorage.getItem("lsa-review-who"); if (w) $("who").value = w; } catch (e) {}
+async function derive(pw) {
+  const raw = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw.trim()), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name: "PBKDF2", salt: b(P.salt), iterations: P.iter, hash: "SHA-256"},
+    raw, {name: "AES-GCM", length: 256}, false, ["decrypt", "encrypt"]);
+}
+const dec = (iv, ct) => crypto.subtle.decrypt({name: "AES-GCM", iv: b(iv)}, KEY, ct);
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  $("who").value = normName($("who").value);
+  if (!$("who").value) { $("msg").textContent = "채점자 성함을 입력해 주세요. 작업 시간과 저장 내용이 성함별로 기록됩니다."; $("who").focus(); return; }
+  $("go").disabled = true; $("msg").textContent = "여는 중입니다…";
+  try {
+    KEY = await derive($("pw").value);
+    ACCESS = await sha256hex($("pw").value.trim() + "|" + P.salt + "|lsa-review-db");
+    D = JSON.parse(new TextDecoder().decode(await dec(P.data_iv, b(P.data_ct))));
+  } catch (err) { $("msg").textContent = "비밀번호가 맞지 않습니다. 다시 확인해 주세요."; $("go").disabled = false; return; }
+  if (B && confirmName !== $("who").value) {
+    let known = true;
+    try {
+      const who = $("who").value, local = localStorage.getItem("lsa-blind:" + location.pathname + ":" + who);
+      known = !!local || !!(await rpc("review_open", {p_access: ACCESS, p_reviewer: who})).state;
+    } catch (err) { known = true; }
+    if (!known) {
+      confirmName = $("who").value; $("go").disabled = false; $("go").textContent = "이 성함으로 시작";
+      $("msg").textContent = `「${confirmName}」 성함으로 저장된 기록이 없습니다. 처음 시작하시는 거라면 「이 성함으로 시작」을 눌러 주세요. 전에 작업하셨다면 그때 입력하신 성함과 같은지 확인해 주세요.`;
+      return;
+    }
+  }
+  try {
+    const enc = await (await fetch("audio.enc", {cache: "no-store"})).arrayBuffer();
+    $("au").src = URL.createObjectURL(new Blob([await dec(P.audio_iv, new Uint8Array(enc))], {type: "audio/mpeg"}));
+  } catch (err) { warn("음성을 불러오지 못했습니다. 새로 고침 해 주세요."); }
+  start();
+});
+function warn(t) { $("warn").textContent = t ? " · " + t : ""; if (t) console.warn(t); }
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) { if (k === "class") e.className = v; else if (k.startsWith("on")) e[k] = v; else e.setAttribute(k, v); }
+  kids.forEach(k => e.append(k)); return e;
+}
+const fmt = ms => { const s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+const fmtd = ms => fmt(ms) + "." + String(Math.floor(ms % 1000 / 100));
+
+// ── 저장 형식 ──
+// store.items[행 id] = {ok, cells: {spk, text, adult, j, note, start, end, added}}
+//   spk 가 없으면 AI 추정 화자. j = 아동 발화별 판정 JSON 문자열 [{sem:[], func, appr, gram:[]}]
+//   added = "1" 이면 채점자가 넣거나 나눈 행(start·end 가 있다)
+const it = id => (store.items[id] = store.items[id] || {cells: {}});
+const cells = id => (store.items[id] || {}).cells || {};
+const spkOf = r => cells(r.id).spk || r.ai_spk;
+const isChild = r => spkOf(r) === "아동";
+const ADULT = new Set(["엄마", "아빠", "기타성인"]);
+const cont = r => cells(r.id).cont === "1";  // 앞 행에 이어지는 발화 — 판정은 앞 행에만
+const judg = r => { try { const j = JSON.parse(cells(r.id).j || "{}"); return Array.isArray(j) ? (j[0] || {}) : j; } catch (e) { return {}; } };
+function rebuildRows() {
+  const base = D.rows.map(r => { const c = cells(r.id); return {...r, start: c.start ? +c.start : r.start, end: c.end ? +c.end : r.end}; });
+  const added = Object.entries(store.items).filter(([, v]) => (v.cells || {}).added === "1" && (v.cells || {}).deleted !== "1")
+    .map(([id, v]) => ({id, start: +v.cells.start, end: +v.cells.end, ai_spk: "", added: true}));
+  ROWS = [...base, ...added].sort((a, b) => a.start - b.start || (a.added ? 1 : 0) - (b.added ? 1 : 0) || a.end - b.end);
+}
+
+// ── 시작·저장 ──
+function start() {
+  $("lock").style.display = "none"; $("app").style.display = "block";
+  $("title").textContent = "전문가 채점지 · " + D.recording;
+  const who = normName($("who").value);
+  try { localStorage.setItem("lsa-review-who", who); } catch (e) {}
+  storeKey = "lsa-blind:" + location.pathname + ":" + who;
+  try { store = JSON.parse(localStorage.getItem(storeKey) || "{}"); } catch (e) { store = {}; }
+  store.items = store.items || {}; store.ov = store.ov || {}; store.reviewer = who;
+  $("reviewer").value = who;
+  $("tInfo").append(...D.info.map(([k, v]) => el("tr", {}, el("th", {style: "width:200px"}, k), el("td", {}, v))));
+  $("bSave").onclick = saveNow; $("bSave").hidden = !B; $("bAdd").onclick = () => addRow();
+  addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); saveNow(); } });
+  rebuildRows(); renderT2(); renderLower(); progress();
+  const first = ROWS.findIndex(r => !(store.items[r.id] || {}).ok);
+  if (first > 0) setTimeout(() => rowEl(first).scrollIntoView({block: "center"}), 100);
+  startTimer();
+  if (B) serverOpen(); else $("sync").textContent = " · 서버에 연결되지 않은 채점지(이 브라우저에만 저장)";
+}
+let timer = null;
+function save() {
+  store.updated = new Date().toISOString(); clearTimeout(timer);
+  timer = setTimeout(() => { try { localStorage.setItem(storeKey, JSON.stringify(store)); } catch (e) { warn("브라우저 저장에 실패했습니다"); } }, 300);
+  store.dirtyServer = true; schedulePush(); progress();
+}
+window.addEventListener("beforeunload", e => {
+  clearTimeout(timer); try { localStorage.setItem(storeKey, JSON.stringify(store)); } catch (err) {}
+  if (B && pendingSec > 0) beat(true);
+  if (B && (store.dirtyServer || pendingSec > 0)) { e.preventDefault(); e.returnValue = "저장되지 않은 수정이 있습니다."; return e.returnValue; }
+});
+function counts() {
+  const ok = ROWS.filter(r => (store.items[r.id] || {}).ok).length;
+  const child = ROWS.filter(r => isChild(r) && !cont(r));
+  const judged = child.filter(r => judg(r).func).length;
+  return {ok, utts: child.length, judged};
+}
+function progress() {
+  const c = counts();
+  $("progress").textContent = `확인 ${c.ok}/${ROWS.length}행 · 아동 발화 ${c.utts}개 중 판정(7열) ${c.judged}`;
+  const pending = !!store.dirtyServer;
+  $("unsaved").hidden = !pending || !B;
+  if (B) { $("bSave").classList.toggle("pulse", pending); $("bSave").textContent = pending ? "저장" : "저장됨 ✓"; }
+}
+
+// ── 서버 저장(Supabase) — 전문가 검토지와 같은 방식 ──
+let SERVER_VERSION = 0, pushTimer = null, pushing = false, retryTimer = null;
+const PRIOR = "이전 검토";  // lsa.blind_page.PRIOR_REVIEWER
+async function rpc(fn, args, keepalive = false) {
+  const r = await fetch(`${B.url}/rest/v1/rpc/${fn}`, {method: "POST", keepalive,
+    headers: {apikey: B.anon, Authorization: "Bearer " + B.anon, "Content-Type": "application/json"}, body: JSON.stringify(args)});
+  if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 160)}`);
+  return r.json();
+}
+const stateOf = () => ({type: "lsa-blind", items: store.items, ov: store.ov, reviewer: store.reviewer, updated: store.updated});
+async function encState() {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name: "AES-GCM", iv}, KEY, new TextEncoder().encode(JSON.stringify(stateOf())));
+  return {iv: b64(iv), ct: b64(new Uint8Array(ct))};
+}
+async function decState(iv, ct) { return JSON.parse(new TextDecoder().decode(await dec(iv, b(ct)))); }
+function mergeInto(base, over) {
+  const out = {items: {...(base.items || {})}, ov: JSON.parse(JSON.stringify(base.ov || {}))};
+  for (const [id, v] of Object.entries(over.items || {})) {
+    const b0 = out.items[id] || {cells: {}};
+    out.items[id] = {...b0, ...v, cells: {...(b0.cells || {}), ...(v.cells || {})}};
+  }
+  for (const [k, v] of Object.entries(over.ov || {})) out.ov[k] = v;
+  return out;
+}
+function syncMsg(t, bad = false) { const e = $("sync"); e.textContent = t ? " · " + t : ""; e.style.color = bad ? "var(--err)" : ""; }
+function refresh() { rebuildRows(); renderT2(); renderLower(); progress(); }
+async function serverOpen() {
+  syncMsg("서버에서 불러오는 중…");
+  try {
+    const res = await rpc("review_open", {p_access: ACCESS, p_reviewer: store.reviewer});
+    applyWorklog(res.worklog);
+    if (res.state) {
+      const srv = await decState(res.state.iv, res.state.ct);
+      SERVER_VERSION = res.state.version;
+      const merged = store.dirtyServer ? mergeInto(srv, store) : srv;
+      store.items = merged.items || {}; store.ov = merged.ov || {};
+      refresh();
+    } else if (store.reviewer !== PRIOR) {
+      // 이 성함으로 처음 연다 — 채점지 이전에 받은 SLP 검토가 있으면 거기서 이어서 한다
+      const prior = await rpc("review_open", {p_access: ACCESS, p_reviewer: PRIOR});
+      if (prior.state) {
+        const merged = mergeInto(await decState(prior.state.iv, prior.state.ct), store);
+        store.items = merged.items || {}; store.ov = merged.ov || {}; store.dirtyServer = true;
+        refresh();
+        warn("이전에 검토해 주신 구간(화자·전사·비고, ☑)을 불러왔습니다 — 판정(5~9열)과 성인 발화 유형을 이어서 채워 주세요");
+      }
+    }
+    try { localStorage.setItem(storeKey, JSON.stringify(store)); } catch (e) {}
+    progress();
+    if (store.dirtyServer || !res.state) schedulePush(0); else syncMsg("서버 저장됨");
+  } catch (e) {
+    syncMsg("서버에 연결하지 못했습니다 — 이 브라우저에 보관하고 다시 시도합니다", true); warn(String(e.message || e));
+    clearTimeout(retryTimer); retryTimer = setTimeout(serverOpen, 20000);
+  }
+}
+function saveNow() {
+  if (!B) return;
+  if (document.activeElement && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) document.activeElement.blur();
+  store.dirtyServer = true; clearTimeout(pushTimer); push(); beat(false);
+}
+function schedulePush(ms = 1500) { if (!B) return; clearTimeout(pushTimer); pushTimer = setTimeout(push, ms); }
+async function push() {
+  if (pushing) { schedulePush(); return; }
+  pushing = true; syncMsg("저장 중…");
+  try {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const {iv, ct} = await encState();
+      const res = await rpc("review_save", {p_access: ACCESS, p_reviewer: store.reviewer, p_iv: iv, p_ct: ct, p_base: SERVER_VERSION});
+      if (res.ok) {
+        SERVER_VERSION = res.version; store.dirtyServer = false;
+        try { localStorage.setItem(storeKey, JSON.stringify(store)); } catch (e) {}
+        syncMsg("서버 저장됨 " + new Date().toTimeString().slice(0, 8)); progress(); return;
+      }
+      const srv = await decState(res.iv, res.ct); SERVER_VERSION = res.version;
+      const merged = mergeInto(srv, store); store.items = merged.items; store.ov = merged.ov;
+      if (!editing()) refresh();
+    }
+    throw new Error("다른 창과 저장이 계속 겹칩니다");
+  } catch (e) {
+    syncMsg("서버 저장 실패 — 이 브라우저에 보관 중, 다시 시도합니다", true); console.warn(e);
+    clearTimeout(retryTimer); retryTimer = setTimeout(push, 20000);
+  } finally { pushing = false; progress(); }
+}
+
+// ── 작업 시간 — 전문가 검토지와 같은 규칙 ──
+const IDLE_MS = 120000, SESSION = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2);
+let lastAct = Date.now(), pendingSec = 0, WORK = [];
+["pointerdown", "keydown", "input", "wheel", "pointermove", "scroll", "touchstart"].forEach(ev =>
+  addEventListener(ev, () => { lastAct = Date.now(); }, {passive: true, capture: true}));
+function active() { return !$("au").paused || (document.visibilityState === "visible" && document.hasFocus() && Date.now() - lastAct < IDLE_MS); }
+function startTimer() {
+  setInterval(() => { if (active()) pendingSec++; renderTimer(); }, 1000);
+  if (B) setInterval(() => beat(false), 30000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && B) beat(true); });
+}
+const hm = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h}시간 ${m}분` : `${m}분 ${s % 60}초`; };
+const todayKST = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+function renderTimer() {
+  const mine = WORK.filter(w => w.reviewer === store.reviewer);
+  const total = mine.reduce((n, w) => n + w.active_sec, 0) + pendingSec;
+  const today = mine.filter(w => w.day === todayKST()).reduce((n, w) => n + w.active_sec, 0) + pendingSec;
+  $("timer").textContent = `작업 시간 오늘 ${hm(today)} · 이 녹음 누적 ${hm(total)}` + (active() ? " ●" : " (멈춤)");
+}
+async function beat(keepalive) {
+  if (!B || !ACCESS) return;
+  const n = pendingSec; pendingSec = 0;
+  const c = counts();
+  try {
+    applyWorklog(await rpc("review_beat", {p_access: ACCESS, p_reviewer: store.reviewer, p_session: SESSION, p_active: n,
+      p_confirmed: c.ok, p_edited: c.judged, p_agent: navigator.userAgent}, keepalive));
+  } catch (e) { pendingSec += n; console.warn(e); }
+}
+function applyWorklog(w) {
+  WORK = (w || []).filter(x => x.reviewer === store.reviewer); renderTimer();
+  const t = $("tWork"); t.innerHTML = "";
+  t.append(el("tr", {}, ...["날짜", "채점자", "작업 시간", "접속", "처음 ~ 마지막 기록", "확인한 행 · 판정한 발화"].map(h => el("th", {}, h))));
+  const sum = WORK.reduce((n, x) => n + x.active_sec, 0);
+  const tm = x => new Date(new Date(x).getTime() + 9 * 3600e3).toISOString().slice(11, 16);
+  WORK.forEach(w => t.append(el("tr", {}, el("td", {}, w.day), el("td", {}, w.reviewer), el("td", {}, hm(w.active_sec) + (w.overlaps ? " *" : "")),
+    el("td", {}, String(w.sessions)), el("td", {}, `${tm(w.first_at)} ~ ${tm(w.last_at)}`), el("td", {}, `${w.confirmed ?? "-"} · ${w.edited ?? "-"}`))));
+  if (WORK.length) t.append(el("tr", {}, el("th", {colspan: "2"}, "합계"), el("th", {}, hm(sum)), el("th", {colspan: "3"}, "")));
+  else t.append(el("tr", {}, el("td", {colspan: "6", class: "small"}, B ? "아직 기록이 없습니다" : "서버에 연결되지 않은 채점지입니다")));
+}
+
+// ── ② 표 ──
+const rowEl = i => $("t2").querySelector(`tr[data-i="${i}"]`);
+const editing = () => !!document.activeElement && !!document.activeElement.closest && !!document.activeElement.closest("#t2") && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
+const COLS = ["듣기", "확인", "시각", "2. 화자", "3. 전사 (아동)", "5. 의미유형", "6. 직전 성인 발화 유형 · 성인 행은 발화 유형", "7. 화용기능 태그", "8. 화용 적절성 판정", "9. 문법 오류 플래그", "비고"];
+const WIDTHS = [46, 34, 92, 118, 250, 210, 130, 120, 104, 150, 160];
+function renderT2() {
+  const t = $("t2"); t.innerHTML = "";
+  t.append(el("colgroup", {}, ...WIDTHS.map(w => el("col", {style: `width:${w}px`}))));
+  t.append(el("tr", {}, ...COLS.map(h => el("th", {style: "white-space:normal"}, h))));
+  ROWS.forEach((r, i) => t.append(rowOf(r, i)));
+}
+function setCell(r, k, v) {
+  const x = it(r.id);
+  if (v === "" || v == null) delete x.cells[k]; else x.cells[k] = v;
+  save();
+}
+// 아동 행의 6열 — 이 행 앞에서 가장 가까운 성인 행의 유형(채점자가 고른 값)
+function prevAdultType(i) {
+  for (let k = i - 1; k >= 0; k--) { const r = ROWS[k]; if (ADULT.has(spkOf(r))) return cells(r.id).adult || "(유형 미선택)"; if (isChild(r) && !cont(r)) continue; }
+  return "";
+}
+function selectOf(opts, now, lab, onch) {
+  const s = el("select", {"aria-label": lab});
+  s.append(el("option", {value: ""}, ""), ...opts.map(o => { const op = el("option", {value: o}, o); if (o === now) op.selected = true; return op; }));
+  s.onchange = () => onch(s.value); return s;
+}
+function chips(opts, onArr, onChange, extra) {
+  const box = el("div", {class: "chips"});
+  const btns = opts.map(o => { const bt = el("button", {type: "button", class: onArr.includes(o) ? "on" : ""}, o);
+    bt.onclick = () => { const on = !bt.classList.contains("on"); bt.classList.toggle("on", on); if (extra) extra.classList.remove("on"); onChange(o, on); }; return bt; });
+  box.append(...btns);
+  if (extra) { extra.onclick = () => { const on = !extra.classList.contains("on"); extra.classList.toggle("on", on); if (on) btns.forEach(b => b.classList.remove("on")); onChange(null, on); }; box.append(extra); }
+  return box;
+}
+function rowOf(r, i) {
+  const child = isChild(r), adult = ADULT.has(spkOf(r)), c = cells(r.id), isCont = child && cont(r);
+  const tr = el("tr", {"data-i": i, class: (child ? "" : "adult") + (r.added ? " added" : "")});
+  const play = el("button", {type: "button", class: "play", title: "이 구간 듣기", onclick: () => toggle(i)}, "▶");
+  const ok = el("input", {type: "checkbox", title: "확인"}); ok.checked = !!(store.items[r.id] || {}).ok;
+  ok.onchange = () => { it(r.id).ok = ok.checked; save(); };
+  const tm = el("td", {class: "tm"}, fmtd(r.start), el("br"), "– " + fmtd(r.end), el("br"),
+    el("button", {type: "button", class: "rowbtn", title: "이 행을 둘로 나눕니다(단축키 S)", onclick: () => openSplit(i)}, "나누기"),
+    el("button", {type: "button", class: "rowbtn", title: "시작·끝 시각을 맞춥니다", onclick: () => openTime(i)}, "시각"));
+  if (r.added) tm.append(el("button", {type: "button", class: "rowbtn", onclick: () => delRow(r)}, "지우기"));
+  if (ED && ED.id === r.id) tm.append(edPanel(r, i));
+  // 2. 화자 — AI 추정을 미리 고른 채로, 고치면 노란색
+  const sp = el("select", {"aria-label": "화자"});
+  sp.append(el("option", {value: ""}, ""), ...D.options.speaker.map(o => { const op = el("option", {value: o}, o + (o === r.ai_spk ? " (AI)" : "")); if (o === spkOf(r)) op.selected = true; return op; }));
+  if (c.spk && c.spk !== r.ai_spk) sp.classList.add("ed");
+  sp.onchange = () => { setCell(r, "spk", sp.value === r.ai_spk ? "" : sp.value); refresh(); };
+  const spTd = el("td", {}, sp);
+  if (r.ai_spk && !c.spk) spTd.append(el("div", {class: "aitag"}, "AI 추정 — 확인해 주세요"));
+  const na = t => el("td", {class: "muted"}, t || "");
+  const cells3 = [];
+  if (child) {
+    // 3. 전사
+    const tx = el("textarea", {rows: "2", placeholder: "들리신 그대로", "aria-label": "아동 전사"}); tx.value = c.text || "";
+    tx.onchange = () => setCell(r, "text", tx.value.trim());
+    const cb = el("input", {type: "checkbox"}); cb.checked = isCont;
+    cb.onchange = () => { setCell(r, "cont", cb.checked ? "1" : ""); refresh(); };
+    const txTd = el("td", {}, tx, el("label", {class: "muted"}, cb, " 앞 행에 이어짐"));
+    if (isCont) { cells3.push(txTd, na("앞 행에서 판정"), na(), na(), na(), na()); }
+    else {
+      const j = judg(r);
+      const put = () => setCell(r, "j", JSON.stringify(j));
+      const arr = key => (o, on) => { if (o === null) j[key] = on ? ["없음"] : []; else j[key] = on ? [...new Set([...(j[key] || []).filter(x => x !== "없음"), o])] : (j[key] || []).filter(x => x !== o); put(); };
+      const none = el("button", {type: "button", class: (j.gram || []).includes("없음") ? "on" : ""}, "없음");
+      cells3.push(txTd,
+        el("td", {}, chips(D.options.sem, j.sem || [], arr("sem"))),
+        el("td", {class: "muted"}, prevAdultType(i)),
+        el("td", {}, selectOf(D.options.func, j.func, "화용기능", v => { j.func = v; put(); progress(); })),
+        el("td", {}, selectOf(D.options.appr, j.appr, "화용 적절성", v => { j.appr = v; put(); })),
+        el("td", {}, chips(D.options.gram, (j.gram || []).filter(x => x !== "없음"), arr("gram"), none)));
+    }
+  } else if (adult) {
+    const ty = selectOf(D.options.adult, c.adult, "성인 발화 유형", v => { setCell(r, "adult", v); refresh(); });
+    cells3.push(na("성인 — 전사 불필요"), na(), el("td", {}, ty), na(), na(), na());
+  } else cells3.push(na(spkOf(r) ? "분석하지 않는 행" : "화자를 골라 주세요"), na(), na(), na(), na(), na());
+  const nt = el("textarea", {rows: "2", "aria-label": "비고"}); nt.value = c.note || "";
+  nt.onchange = () => setCell(r, "note", nt.value.trim());
+  tr.append(el("td", {}, play), el("td", {}, ok), tm, spTd, ...cells3, el("td", {}, nt));
+  if (i === cur) tr.classList.add("cur");
+  return tr;
+}
+// ── 행 나누기·추가·시각 조정 ──
+// 행 안에 작은 편집기를 열어, 나눌 시각(또는 시작·끝)을 보며 ±로 맞추고 앞뒤를 들어 본 뒤 확정한다.
+// 재생 위치가 그 행 밖이어도 늘 열린다(행 가운데에서 시작) — 「되다 안 되다」가 없게.
+let ED = null;  // {id, mode: "split" | "time", at | start,end}
+const LAG = 250;  // 단축키 S 는 소리를 듣고 누르기까지의 늦음만큼 앞당긴다
+function toast(t) {
+  let d = $("toast"); if (!d) { d = el("div", {id: "toast"}); document.body.append(d); }
+  d.textContent = t; d.style.opacity = "1"; clearTimeout(d._t); d._t = setTimeout(() => { d.style.opacity = "0"; }, 3500);
+}
+const nowMs = () => Math.round(au.currentTime * 1000);
+function rowContaining(ms) { let k = -1; ROWS.forEach((r, j) => { if (r.start <= ms && ms <= r.end) k = j; }); return k; }
+function openSplit(i, at) {
+  const r = ROWS[i], t = at ?? nowMs();
+  ED = {id: r.id, mode: "split", at: (t > r.start + 100 && t < r.end - 100) ? t : Math.round((r.start + r.end) / 2)};
+  if (!au.paused) au.pause();
+  rowEl(i).replaceWith(rowOf(r, i)); setCur(i);
+}
+function openTime(i) {
+  const r = ROWS[i]; ED = {id: r.id, mode: "time", start: r.start, end: r.end};
+  rowEl(i).replaceWith(rowOf(r, i)); setCur(i);
+}
+function closeEd() { const i = ROWS.findIndex(r => ED && r.id === ED.id); ED = null; if (i >= 0) rowEl(i).replaceWith(rowOf(ROWS[i], i)); }
+function playRange(a, b) {
+  if (!au.src) return;
+  follow = false; stopAt = b / 1000; au.currentTime = Math.max(0, a / 1000); au.play().catch(() => {});
+}
+function doSplit(r, at) {
+  if (!(at > r.start + 50 && at < r.end - 50)) { toast("나눌 시각이 행 밖입니다 — 시각을 행 안으로 맞춰 주세요"); return; }
+  const id = `${r.id}~${at}`;
+  it(r.id).cells.end = String(at);
+  it(id).cells = {added: "1", start: String(at), end: String(r.end)};
+  ED = null; save(); refresh();
+  const j = ROWS.findIndex(x => x.id === id);
+  if (j >= 0) { setCur(j); const sp = rowEl(j).querySelector("select"); if (sp) sp.focus(); }
+  toast(`${fmtd(at)} 에서 나눴습니다 — 아래 행의 화자를 골라 주세요`);
+}
+function doTime(r, a, b) {
+  if (!(b - a >= 100)) { toast("끝이 시작보다 0.1초 이상 뒤여야 합니다"); return; }
+  const x = it(r.id); x.cells.start = String(a); x.cells.end = String(b);
+  ED = null; save(); refresh();
+  const j = ROWS.findIndex(y => y.id === r.id); if (j >= 0) setCur(j);
+}
+function edPanel(r, i) {
+  const nudges = (get, set) => el("span", {class: "nud"}, ...[-500, -100, 100, 500].map(d =>
+    el("button", {type: "button", onclick: () => { set(get() + d); rowEl(i).replaceWith(rowOf(r, i)); }}, (d > 0 ? "+" : "−") + Math.abs(d / 1000))));
+  const box = el("div", {class: "ed"});
+  if (ED.mode === "split") {
+    box.append(el("div", {}, "나눌 시각 ", el("b", {}, fmtd(ED.at))), nudges(() => ED.at, v => { ED.at = Math.min(r.end - 60, Math.max(r.start + 60, v)); }),
+      el("div", {}, el("button", {type: "button", onclick: () => playRange(r.start, ED.at)}, "▶ 앞부분"), el("button", {type: "button", onclick: () => playRange(ED.at, r.end)}, "▶ 뒷부분")),
+      el("div", {}, el("button", {type: "button", class: "primary", onclick: () => doSplit(r, ED.at)}, "나누기 (Enter)"), el("button", {type: "button", onclick: closeEd}, "취소")));
+  } else {
+    box.append(el("div", {}, "시작 ", el("b", {}, fmtd(ED.start))), nudges(() => ED.start, v => { ED.start = Math.max(0, Math.min(ED.end - 100, v)); }),
+      el("div", {}, "끝 ", el("b", {}, fmtd(ED.end))), nudges(() => ED.end, v => { ED.end = Math.max(ED.start + 100, v); }),
+      el("div", {}, el("button", {type: "button", onclick: () => playRange(ED.start, ED.end)}, "▶ 듣기")),
+      el("div", {}, el("button", {type: "button", class: "primary", onclick: () => doTime(r, ED.start, ED.end)}, "적용 (Enter)"), el("button", {type: "button", onclick: closeEd}, "취소")));
+  }
+  return box;
+}
+// 빠진 발화 넣기 — 재생 위치가 어떤 행 안이면 그 행을 나누고, 행 사이면 그 틈에 행을 만든다(앞뒤 행을 넘지 않게).
+function addRow(at) {
+  if (!au.src) return;
+  const t = at ?? nowMs();
+  const k = rowContaining(t);
+  if (k >= 0) { openSplit(k, t); toast("재생 위치가 이미 있는 행 안이라 그 행을 나눕니다 — 시각을 맞추고 「나누기」를 눌러 주세요"); return; }
+  const prevEnd = Math.max(0, ...ROWS.filter(r => r.start <= t).map(r => r.end));
+  const next = ROWS.find(r => r.start > t);
+  let a = Math.max(prevEnd + 1, t - 2000), b = Math.min(next ? next.start - 1 : t + 500, t + 500);
+  if (b - a < 300) { a = Math.max(prevEnd + 1, b - 300); }
+  const id = `+${t}`;
+  it(id).cells = {added: "1", start: String(a), end: String(b)};
+  save(); refresh();
+  const j = ROWS.findIndex(r => r.id === id); if (j >= 0) openTime(j);
+  toast("행 사이에 새 행을 넣었습니다 — 시작·끝을 맞추고 「적용」, 그다음 화자를 골라 주세요");
+}
+// 단축키(입력칸 밖에서): 스페이스 재생/멈춤 · S 지금 위치에서 나누기 · A 빠진 발화 넣기 · Enter 확정 · Esc 취소
+addEventListener("keydown", e => {
+  if (!D || $("app").style.display !== "block") return;
+  const typing = document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+  if (e.key === "Escape" && ED) { closeEd(); return; }
+  if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "Enter" && ED) {
+    e.preventDefault(); const r = ROWS.find(x => x.id === ED.id);
+    if (ED.mode === "split") doSplit(r, ED.at); else doTime(r, ED.start, ED.end); return;
+  }
+  if (e.code === "Space") {
+    e.preventDefault();
+    if (au.paused) { follow = $("auto").checked; followFrom = Math.max(0, rowAt(nowMs())); stopAt = null; au.play().catch(() => {}); } else au.pause();
+  } else if (e.code === "KeyS") {
+    const t = Math.max(0, nowMs() - (au.paused ? 0 : LAG)), k = rowContaining(t);
+    if (k < 0) { toast("지금 위치는 행 사이입니다 — 빠진 발화면 A 를 눌러 주세요"); return; }
+    openSplit(k, t);
+  } else if (e.code === "KeyA") { if (!au.paused) au.pause(); addRow(Math.max(0, nowMs() - (au.paused ? 0 : LAG))); }
+});
+function delRow(r) { const x = it(r.id); x.cells.deleted = "1"; save(); refresh(); }
+
+// ── 재생 ──
+let stopAt = null, playing = null, follow = false, followFrom = 0;
+const au = $("au");
+const rowAt = ms => { let k = -1; for (let i = 0; i < ROWS.length; i++) { if (ROWS[i].start <= ms) k = i; else break; } return k; };
+au.addEventListener("timeupdate", () => {
+  const t = au.currentTime;
+  if (follow) {
+    const i = Math.max(followFrom, rowAt(t * 1000 + 50));
+    if (i >= 0 && i !== playing) { mark(i); if (!editing()) setCur(i); }
+    const r = ROWS[i], gap = r && t * 1000 > r.end + 300;
+    $("playpos").textContent = `▶ ${fmt(t * 1000)}` + (gap ? " · 행 사이" : "");
+    return;
+  }
+  if (stopAt !== null && t >= stopAt) { au.pause(); stopAt = null; mark(null); }
+});
+au.addEventListener("pause", () => { if (follow) { follow = false; mark(null); } $("playpos").textContent = `■ ${fmt(au.currentTime * 1000)}`; });
+function mark(i) {
+  if (playing !== null && rowEl(playing)) { const p = rowEl(playing).querySelector(".play"); p.classList.remove("on"); p.textContent = "▶"; }
+  playing = i;
+  if (i !== null && rowEl(i)) { const p = rowEl(i).querySelector(".play"); p.classList.add("on"); p.textContent = "■"; }
+}
+function setCur(i) {
+  if (cur >= 0 && rowEl(cur)) rowEl(cur).classList.remove("cur");
+  cur = i; const tr = rowEl(i); if (!tr) return; tr.classList.add("cur");
+  const rc = tr.getBoundingClientRect(); if (rc.top < 120 || rc.bottom > innerHeight - 40) tr.scrollIntoView({block: "center", behavior: "smooth"});
+}
+function toggle(i) { if (playing === i && !au.paused) { au.pause(); stopAt = null; follow = false; mark(null); } else playSeg(i); }
+function playSeg(i) {
+  if (!au.src) { warn("음성이 없습니다."); return; }
+  const r = ROWS[i], pad = parseFloat($("pad").value);
+  follow = $("auto").checked; followFrom = i; stopAt = follow ? null : r.end / 1000 + pad;
+  au.currentTime = Math.max(0, r.start / 1000 - pad); mark(i); setCur(i);
+  au.play().catch(() => warn("재생하시려면 화면을 한 번 눌러 주세요"));
+}
+
+// ── 종합 ──
+function inputTd(obj, key, opts) {
+  let e;
+  if (opts) { e = el("select"); e.append(el("option", {value: ""}, ""), ...opts.map(o => { const op = el("option", {value: o}, o); if (o === obj[key]) op.selected = true; return op; })); e.onchange = () => { obj[key] = e.value; save(); }; }
+  else { e = el("input", {type: "text"}); e.value = obj[key] || ""; e.onchange = () => { obj[key] = e.value.trim(); save(); }; }
+  return el("td", {class: "slp"}, e);
+}
+function renderLower() {
+  const ov = store.ov, t6 = $("t6"); t6.innerHTML = "";
+  [["typical", "이 녹음이 아이의 평소 모습을 대표하나요?", ["대표함", "일부 대표함", "대표하지 않음", "판단하기 어려움"]],
+   ["summary", "종합 소견(아이의 언어 발달 수준)"], ["feedback", "채점하시며 판단이 어려웠던 점·기준에 대한 의견"]]
+    .forEach(([k, lab, opts]) => t6.append(el("tr", {}, el("th", {style: "width:320px;white-space:normal"}, lab), inputTd(ov, k, opts))));
+}
+</script>
+</body></html>
